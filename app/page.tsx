@@ -1,5 +1,6 @@
 import { contentfulClient } from '@/lib/contentful';
 import { Page, SiteSettings } from '@/types/contentful';
+import TopBanner from '@/components/TopBanner';
 import Navigation from '@/components/Navigation';
 import ModuleRenderer from '@/components/ModuleRenderer';
 import Footer from '@/components/Footer';
@@ -64,6 +65,7 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen">
+      <TopBanner />
       <Navigation navigation={page.fields.navigation} siteSettings={siteSettings} />
       {page.fields.modules.map((module) => (
         <ModuleRenderer key={module.sys.id} module={module} />
