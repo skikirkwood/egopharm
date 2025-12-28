@@ -21,8 +21,8 @@ export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
             const imageUrl = `https:${item.fields.image.fields.file.url}`;
 
             const content = (
-              <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow">
-                <div className="relative h-48">
+              <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
+                <div className="relative h-48 flex-shrink-0">
                   <Image
                     src={imageUrl}
                     alt={item.fields.image.fields.title}
@@ -30,11 +30,11 @@ export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
                     className="object-cover"
                   />
                 </div>
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
                     {item.fields.title}
                   </h3>
-                  <p className="text-gray-700 whitespace-pre-line">
+                  <p className="text-gray-700 whitespace-pre-line flex-grow">
                     {item.fields.body}
                   </p>
                 </div>
@@ -46,14 +46,14 @@ export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
                 <a
                   key={item.sys.id}
                   href={item.fields.url}
-                  className="block hover:no-underline"
+                  className="block hover:no-underline h-full"
                 >
                   {content}
                 </a>
               );
             }
 
-            return <div key={item.sys.id}>{content}</div>;
+            return <div key={item.sys.id} className="h-full">{content}</div>;
           })}
         </div>
       </div>
