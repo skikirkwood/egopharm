@@ -9,8 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "contentful:migrate": "ts-node --project contentful/tsconfig.json contentful/migrate.ts",
-    "contentful:migrate:featured-news": "ts-node --project contentful/tsconfig.json contentful/migrate-featured-news.ts",
-    "contentful:migrate:hero-image-location": "ts-node --project contentful/tsconfig.json contentful/migrate-hero-image-location.ts"
+    "contentful:migrate:featured-news": "ts-node --project contentful/tsconfig.json contentful/migrate-featured-news.ts"
   },
   "dependencies": {
     "next": "^14.0.0",
