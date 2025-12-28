@@ -9,10 +9,10 @@ export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
   const { title, items } = featuredNews.fields;
 
   return (
-    <section className="py-20 px-4 bg-gray-50">
+    <section className="py-20 px-4 bg-blue-600">
       <div className="max-w-7xl mx-auto">
         {title && (
-          <h2 className="text-4xl md:text-5xl font-bold text-blue-500 mb-12 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-12 text-center">
             {title}
           </h2>
         )}
