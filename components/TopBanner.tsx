@@ -1,6 +1,6 @@
 export default function TopBanner() {
   return (
-    <div className="bg-slate-700 text-white py-3 px-4">
+    <div className="bg-[#0072ce] text-white py-3 px-4">
       <div className="max-w-7xl mx-auto flex justify-end items-center space-x-6">
         <a
           href="/where-to-buy"
