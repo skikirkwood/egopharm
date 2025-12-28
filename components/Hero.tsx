@@ -33,17 +33,22 @@ export default function Hero({ hero }: HeroProps) {
               {title}
             </h1>
             {subtitle && (
-              <p className="text-lg md:text-xl text-gray-700 mb-8 whitespace-pre-line">
+              <p className="text-lg md:text-xl text-gray-700 whitespace-pre-line">
                 {subtitle}
               </p>
             )}
             {ctaText && ctaLink && (
-              <a
-                href={ctaLink}
-                className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
-              >
-                {ctaText}
-              </a>
+              <>
+                <hr className="border-t border-gray-300 my-8" />
+                <div className="text-center">
+                  <a
+                    href={ctaLink}
+                    className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
+                  >
+                    {ctaText}
+                  </a>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -72,17 +77,22 @@ export default function Hero({ hero }: HeroProps) {
             {title}
           </h1>
           {subtitle && (
-            <p className="text-lg md:text-xl text-gray-700 mb-8 whitespace-pre-line">
+            <p className="text-lg md:text-xl text-gray-700 whitespace-pre-line">
               {subtitle}
             </p>
           )}
           {ctaText && ctaLink && (
-            <a
-              href={ctaLink}
-              className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
-            >
-              {ctaText}
-            </a>
+            <>
+              <hr className="border-t border-gray-300 my-8" />
+              <div className="text-center">
+                <a
+                  href={ctaLink}
+                  className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
+                >
+                  {ctaText}
+                </a>
+              </div>
+            </>
           )}
         </div>
       </div>
