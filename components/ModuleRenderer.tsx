@@ -9,7 +9,7 @@ interface ModuleRendererProps {
 }
 
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
-  const contentTypeId = module.sys.contentType?.sys?.id;
+  const contentTypeId = module.sys.contentType?.sys?.id as string;
 
   if (!contentTypeId) {
     console.warn('Module has no content type ID:', module);
