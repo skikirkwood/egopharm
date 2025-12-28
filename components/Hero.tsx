@@ -13,38 +13,40 @@ export default function Hero({ hero }: HeroProps) {
   // Right overlay layout - full-width image with content overlaid on right
   if (isOverlay) {
     return (
-      <section className="relative w-full min-h-[600px] flex items-center">
-        {/* Full-width background image */}
-        <div className="absolute inset-0 z-0">
+      <section className="relative w-full flex items-center bg-gray-100">
+        {/* Full-width background image - uses contain to show entire image */}
+        <div className="relative w-full">
           <Image
             src={imageUrl}
             alt={backgroundImage.fields.title}
-            fill
-            className="object-cover"
+            width={1920}
+            height={1080}
+            className="w-full h-auto object-contain"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/60" />
-        </div>
-        
-        {/* Content overlaid on the right */}
-        <div className="relative z-10 w-full flex justify-end px-8 py-12 md:py-20">
-          <div className="max-w-xl bg-white/90 backdrop-blur-sm rounded-lg p-8 md:p-12 mr-0 md:mr-12">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-blue-500 mb-6">
-              {title}
-            </h1>
-            {subtitle && (
-              <p className="text-lg md:text-xl text-gray-700 mb-8 whitespace-pre-line">
-                {subtitle}
-              </p>
-            )}
-            {ctaText && ctaLink && (
-              <a
-                href={ctaLink}
-                className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
-              >
-                {ctaText}
-              </a>
-            )}
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/50" />
+          
+          {/* Content overlaid on the right */}
+          <div className="absolute inset-0 flex items-center justify-end px-8 py-12 md:py-20">
+            <div className="max-w-xl bg-white/90 backdrop-blur-sm rounded-lg p-8 md:p-12 mr-0 md:mr-12">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-blue-500 mb-6">
+                {title}
+              </h1>
+              {subtitle && (
+                <p className="text-lg md:text-xl text-gray-700 mb-8 whitespace-pre-line">
+                  {subtitle}
+                </p>
+              )}
+              {ctaText && ctaLink && (
+                <a
+                  href={ctaLink}
+                  className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
+                >
+                  {ctaText}
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </section>
