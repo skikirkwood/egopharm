@@ -15,13 +15,13 @@ export default function Hero({ hero }: HeroProps) {
     return (
       <section className="relative w-full flex items-center bg-gray-100">
         {/* Full-width background image - uses contain to show entire image */}
-        <div className="relative w-full">
+        <div className="relative w-full max-h-[500px] overflow-hidden">
           <Image
             src={imageUrl}
             alt={backgroundImage.fields.title}
             width={1920}
             height={1080}
-            className="w-full h-auto object-contain"
+            className="w-full h-auto object-contain max-h-[500px]"
             priority
           />
           {/* Gradient overlay */}
