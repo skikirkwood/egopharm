@@ -10,9 +10,19 @@ export default function TopBanner() {
         </a>
         <a
           href="/brands"
-          className="text-sm font-medium hover:text-blue-200 transition-colors"
+          className="text-sm font-medium hover:text-blue-200 transition-colors flex items-center"
         >
           BRANDS
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3 w-3 ml-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </a>
         <button className="flex items-center space-x-1 text-sm font-medium hover:text-blue-200 transition-colors">
           <svg
@@ -28,6 +38,16 @@ export default function TopBanner() {
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
           </svg>
           <span>EN</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </button>
       </div>
     </div>
