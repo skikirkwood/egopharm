@@ -58,6 +58,7 @@ export interface Hero {
     };
     ctaText?: string;
     ctaLink?: string;
+    imageLocation?: 'Right side' | 'Right overlay';
   };
 }
 
