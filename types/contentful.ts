@@ -121,7 +121,41 @@ export interface ImageTriplex {
   };
 }
 
-export type Module = Hero | Infoblock | ImageTriplex;
+export interface FeaturedNewsItem {
+  sys: {
+    id: string;
+  };
+  fields: {
+    title: string;
+    image: {
+      fields: {
+        file: {
+          url: string;
+        };
+        title: string;
+      };
+    };
+    body: string;
+    url?: string;
+  };
+}
+
+export interface FeaturedNews {
+  sys: {
+    id: string;
+    contentType: {
+      sys: {
+        id: 'featuredNews';
+      };
+    };
+  };
+  fields: {
+    title: string;
+    items: FeaturedNewsItem[];
+  };
+}
+
+export type Module = Hero | Infoblock | ImageTriplex | FeaturedNews;
 
 export interface Page {
   sys: {

@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "contentful:migrate": "ts-node --project contentful/tsconfig.json contentful/migrate.ts"
+    "contentful:migrate": "ts-node --project contentful/tsconfig.json contentful/migrate.ts",
+    "contentful:migrate:featured-news": "ts-node --project contentful/tsconfig.json contentful/migrate-featured-news.ts"
   },
   "dependencies": {
     "next": "^14.0.0",
