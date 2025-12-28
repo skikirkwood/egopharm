@@ -36,7 +36,7 @@ export default function Hero({ hero }: HeroProps) {
           {ctaText && ctaLink && (
             <a
               href={ctaLink}
-              className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold hover:bg-blue-700 transition-colors"
+              className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold border-2 border-transparent hover:bg-white hover:text-blue-500 hover:border-blue-500 transition-colors"
             >
               {ctaText}
             </a>
