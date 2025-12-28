@@ -20,7 +20,7 @@ export default function Hero({ hero }: HeroProps) {
             src={imageUrl}
             alt={backgroundImage.fields.title}
             fill
-            className="object-cover"
+            className="object-cover object-top"
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/50" />
