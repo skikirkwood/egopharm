@@ -4,6 +4,9 @@ import Navigation from '@/components/Navigation';
 import ModuleRenderer from '@/components/ModuleRenderer';
 import Footer from '@/components/Footer';
 
+// Revalidate every 60 seconds to fetch fresh content from Contentful
+export const revalidate = 60;
+
 async function getPage(slug: string = 'home'): Promise<Page | null> {
   try {
     const entries = await contentfulClient.getEntries({
