@@ -145,7 +145,7 @@ export interface FeaturedNews {
     id: string;
     contentType: {
       sys: {
-        id: 'featuredNews';
+        id: '6NbIn3MpiND4Hybq2U6NV8';
       };
     };
   };
