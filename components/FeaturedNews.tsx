@@ -56,6 +56,15 @@ export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
             return <div key={item.sys.id} className="h-full">{content}</div>;
           })}
         </div>
+        
+        <div className="mt-12 text-center">
+          <a
+            href="https://www.egopharm.com/content/egopharm/au/en/news"
+            className="inline-block bg-white text-blue-600 px-8 py-4 rounded-md font-semibold border-2 border-white hover:bg-blue-600 hover:text-white hover:border-white transition-colors"
+          >
+            VIEW ALL NEWS
+          </a>
+        </div>
       </div>
     </section>
   );
