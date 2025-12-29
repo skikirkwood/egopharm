@@ -2,13 +2,17 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { ImageTriplex as ImageTriplexType } from '@/types/contentful';
 
 interface ImageTriplexProps {
   imageTriplex: ImageTriplexType;
 }
 
-export default function ImageTriplex({ imageTriplex }: ImageTriplexProps) {
+export default function ImageTriplex({ imageTriplex: initialImageTriplex }: ImageTriplexProps) {
+  // Subscribe to live updates
+  const imageTriplex = useContentfulLiveUpdates(initialImageTriplex);
+  
   const { title, items } = imageTriplex.fields;
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -77,4 +81,3 @@ export default function ImageTriplex({ imageTriplex }: ImageTriplexProps) {
     </section>
   );
 }
-

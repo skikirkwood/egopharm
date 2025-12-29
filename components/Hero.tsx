@@ -1,11 +1,17 @@
+'use client';
+
 import Image from 'next/image';
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { Hero as HeroType } from '@/types/contentful';
 
 interface HeroProps {
   hero: HeroType;
 }
 
-export default function Hero({ hero }: HeroProps) {
+export default function Hero({ hero: initialHero }: HeroProps) {
+  // Subscribe to live updates
+  const hero = useContentfulLiveUpdates(initialHero);
+  
   const { title, subtitle, backgroundImage, ctaText, ctaLink, imageLocation } = hero.fields;
   const imageUrl = `https:${backgroundImage.fields.file.url}`;
   const isOverlay = imageLocation === 'Right overlay';
@@ -99,4 +105,3 @@ export default function Hero({ hero }: HeroProps) {
     </section>
   );
 }
-

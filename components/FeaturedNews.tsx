@@ -1,11 +1,17 @@
+'use client';
+
 import Image from 'next/image';
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { FeaturedNews as FeaturedNewsType } from '@/types/contentful';
 
 interface FeaturedNewsProps {
   featuredNews: FeaturedNewsType;
 }
 
-export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
+export default function FeaturedNews({ featuredNews: initialFeaturedNews }: FeaturedNewsProps) {
+  // Subscribe to live updates
+  const featuredNews = useContentfulLiveUpdates(initialFeaturedNews);
+  
   const { title, items } = featuredNews.fields;
 
   return (
@@ -69,4 +75,3 @@ export default function FeaturedNews({ featuredNews }: FeaturedNewsProps) {
     </section>
   );
 }
-

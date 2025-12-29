@@ -1,11 +1,17 @@
+'use client';
+
 import Image from 'next/image';
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { Infoblock as InfoblockType } from '@/types/contentful';
 
 interface InfoblockProps {
   infoblock: InfoblockType;
 }
 
-export default function Infoblock({ infoblock }: InfoblockProps) {
+export default function Infoblock({ infoblock: initialInfoblock }: InfoblockProps) {
+  // Subscribe to live updates
+  const infoblock = useContentfulLiveUpdates(initialInfoblock);
+  
   const { title, body, ctaText, ctaLink, backgroundImage } = infoblock.fields;
 
   return (
@@ -43,4 +49,3 @@ export default function Infoblock({ infoblock }: InfoblockProps) {
     </section>
   );
 }
-
