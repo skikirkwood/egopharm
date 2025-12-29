@@ -16,7 +16,15 @@ export async function GET(request: NextRequest) {
   const draft = await draftMode();
   draft.enable();
 
-  // Redirect to the path from the fetched post
-  redirect(slug);
-}
+  // Map slug to actual route path
+  // "home" slug maps to root path "/"
+  let redirectPath = slug;
+  if (slug === 'home' || slug === '/home') {
+    redirectPath = '/';
+  } else if (!slug.startsWith('/')) {
+    redirectPath = `/${slug}`;
+  }
 
+  // Redirect to the path
+  redirect(redirectPath);
+}
