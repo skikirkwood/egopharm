@@ -63,8 +63,8 @@ export default function ImageTriplex({ imageTriplex }: ImageTriplexProps) {
                   )}
                 </div>
                 {!isHovered && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                    <h3 className="text-xl font-bold text-white">
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 p-4">
+                    <h3 className="text-xl font-bold text-white text-center">
                       {item.fields.title}
                     </h3>
                   </div>
