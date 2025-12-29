@@ -1,4 +1,5 @@
-import { contentfulClient } from '@/lib/contentful';
+import { draftMode } from 'next/headers';
+import { getContentfulClient } from '@/lib/contentful';
 import { Page, SiteSettings } from '@/types/contentful';
 import TopBanner from '@/components/TopBanner';
 import Navigation from '@/components/Navigation';
@@ -8,9 +9,10 @@ import Footer from '@/components/Footer';
 // Revalidate every 60 seconds to fetch fresh content from Contentful
 export const revalidate = 60;
 
-async function getPage(slug: string = 'home'): Promise<Page | null> {
+async function getPage(slug: string = 'home', preview: boolean = false): Promise<Page | null> {
   try {
-    const entries = await contentfulClient.getEntries({
+    const client = getContentfulClient(preview);
+    const entries = await client.getEntries({
       content_type: 'page',
       'fields.slug': slug,
       include: 10, // Include linked entries and assets
@@ -27,9 +29,10 @@ async function getPage(slug: string = 'home'): Promise<Page | null> {
   }
 }
 
-async function getSiteSettings(): Promise<SiteSettings | null> {
+async function getSiteSettings(preview: boolean = false): Promise<SiteSettings | null> {
   try {
-    const entries = await contentfulClient.getEntries({
+    const client = getContentfulClient(preview);
+    const entries = await client.getEntries({
       content_type: '6b7cR8MAmg1gzxiibBMiG7',
       include: 2, // Include linked assets
       limit: 1,
@@ -47,8 +50,9 @@ async function getSiteSettings(): Promise<SiteSettings | null> {
 }
 
 export default async function Home() {
-  const page = await getPage('home');
-  const siteSettings = await getSiteSettings();
+  const { isEnabled: isPreview } = await draftMode();
+  const page = await getPage('home', isPreview);
+  const siteSettings = await getSiteSettings(isPreview);
 
   if (!page) {
     return (
@@ -65,6 +69,11 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen">
+      {isPreview && (
+        <div className="bg-yellow-400 text-black text-center py-2 text-sm font-medium">
+          Preview Mode - <a href="/api/disable-draft" className="underline">Exit Preview</a>
+        </div>
+      )}
       <TopBanner />
       <Navigation navigation={page.fields.navigation} siteSettings={siteSettings} />
       {page.fields.modules.map((module) => (
@@ -74,4 +83,3 @@ export default async function Home() {
     </main>
   );
 }
-
