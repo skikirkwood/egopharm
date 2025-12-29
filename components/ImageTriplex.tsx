@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
+import { useContentfulLiveUpdates, useContentfulInspectorMode } from '@contentful/live-preview/react';
 import { ImageTriplex as ImageTriplexType } from '@/types/contentful';
 
 interface ImageTriplexProps {
@@ -13,6 +13,9 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
   // Subscribe to live updates
   const imageTriplex = useContentfulLiveUpdates(initialImageTriplex);
   
+  // Get inspector mode props for each field
+  const inspectorProps = useContentfulInspectorMode({ entryId: imageTriplex.sys.id });
+  
   const { title, items } = imageTriplex.fields;
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -20,11 +23,14 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
     <section className="py-20 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
         {title && (
-          <h2 className="text-4xl md:text-5xl font-bold text-blue-500 mb-12 text-center">
+          <h2 
+            className="text-4xl md:text-5xl font-bold text-blue-500 mb-12 text-center"
+            {...inspectorProps({ fieldId: 'title' })}
+          >
             {title}
           </h2>
         )}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6" {...inspectorProps({ fieldId: 'items' })}>
           {items.map((item, index) => {
             const imageUrl = `https:${item.fields.backgroundImage.fields.file.url}`;
             const isHovered = hoveredIndex === index;

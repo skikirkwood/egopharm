@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
+import { useContentfulLiveUpdates, useContentfulInspectorMode } from '@contentful/live-preview/react';
 import { FeaturedNews as FeaturedNewsType } from '@/types/contentful';
 
 interface FeaturedNewsProps {
@@ -12,17 +12,23 @@ export default function FeaturedNews({ featuredNews: initialFeaturedNews }: Feat
   // Subscribe to live updates
   const featuredNews = useContentfulLiveUpdates(initialFeaturedNews);
   
+  // Get inspector mode props for each field
+  const inspectorProps = useContentfulInspectorMode({ entryId: featuredNews.sys.id });
+  
   const { title, items } = featuredNews.fields;
 
   return (
     <section className="py-20 px-4 bg-blue-600">
       <div className="max-w-7xl mx-auto">
         {title && (
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-12 text-center">
+          <h2 
+            className="text-4xl md:text-5xl font-bold text-white mb-12 text-center"
+            {...inspectorProps({ fieldId: 'title' })}
+          >
             {title}
           </h2>
         )}
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-8" {...inspectorProps({ fieldId: 'items' })}>
           {items.map((item) => {
             const imageUrl = `https:${item.fields.image.fields.file.url}`;
 
