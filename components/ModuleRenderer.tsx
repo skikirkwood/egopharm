@@ -64,13 +64,22 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const experiences = moduleFields?.nt_experiences;
   const hasExperiences = Array.isArray(experiences) && experiences.length > 0;
 
+  console.log('ModuleRenderer for', contentTypeId, ':', {
+    hasExperiences,
+    experiencesLength: experiences?.length,
+    experiencesRaw: experiences,
+    mounted,
+  });
+
   // If no experiences, render baseline directly
   if (!hasExperiences) {
+    console.log('No experiences found, rendering baseline');
     return renderBaseline();
   }
 
   // During SSR, render baseline - Experience component requires provider context
   if (!mounted) {
+    console.log('Not mounted yet, rendering baseline');
     return renderBaseline();
   }
 
