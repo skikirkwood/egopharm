@@ -35,8 +35,16 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    console.log('ModuleRenderer useEffect - setting mounted to true');
     setMounted(true);
   }, []);
+
+  // Log every render
+  console.log('ModuleRenderer RENDER:', {
+    contentType: module.sys.contentType?.sys?.id,
+    moduleId: module.sys.id,
+    mounted,
+  });
 
   const contentTypeId = module.sys.contentType?.sys?.id as string;
 
