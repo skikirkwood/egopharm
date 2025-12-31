@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Module } from '@/types/contentful';
 import { useProfile } from '@ninetailed/experience.js-react';
 import Hero from './Hero';
@@ -31,6 +32,7 @@ const propNameMap: Record<string, string> = {
 
 export default function PersonalizedModule({ module }: PersonalizedModuleProps) {
   const { loading, status, profile, error } = useProfile();
+  const [retryCount, setRetryCount] = useState(0);
 
   const contentTypeId = module.sys.contentType?.sys?.id as string;
   const Component = componentMap[contentTypeId];
@@ -43,7 +45,17 @@ export default function PersonalizedModule({ module }: PersonalizedModuleProps) 
   };
 
   // Debug logging
-  console.log('PersonalizedModule - Profile state:', { loading, status, profile, error });
+  console.log('PersonalizedModule - Profile state:', { loading, status, profile, error, retryCount });
+
+  // Force re-render after a delay if still loading (to catch late profile updates)
+  useEffect(() => {
+    if (loading && retryCount < 10) {
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, retryCount]);
 
   // Render baseline while loading
   if (loading || status !== 'success' || !profile) {

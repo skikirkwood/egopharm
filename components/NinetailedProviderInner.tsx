@@ -14,12 +14,10 @@ export default function NinetailedProviderInner({ children }: NinetailedProvider
 
   // Debug logging
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Ninetailed Provider initialized:', {
-        apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'NOT SET',
-        environment,
-      });
-    }
+    console.log('Ninetailed Provider initialized:', {
+      apiKey: apiKey ? `${apiKey.substring(0, 8)}...` : 'NOT SET',
+      environment,
+    });
   }, [apiKey, environment]);
 
   return (
@@ -29,8 +27,13 @@ export default function NinetailedProviderInner({ children }: NinetailedProvider
       plugins={[
         new NinetailedInsightsPlugin(),
       ]}
-      // Enable debug mode in development
-      requestTimeout={5000}
+      requestTimeout={10000}
+      onLog={(...args: any[]) => {
+        console.log('[Ninetailed]', ...args);
+      }}
+      onError={(error: any) => {
+        console.error('[Ninetailed Error]', error);
+      }}
     >
       {children}
     </NinetailedProvider>
