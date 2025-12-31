@@ -1,5 +1,6 @@
 import { draftMode } from 'next/headers';
 import { getContentfulClient } from '@/lib/contentful';
+import { getAudiences } from '@/lib/ninetailed';
 import { Page, SiteSettings } from '@/types/contentful';
 import TopBanner from '@/components/TopBanner';
 import Navigation from '@/components/Navigation';
@@ -51,8 +52,11 @@ async function getSiteSettings(preview: boolean = false): Promise<SiteSettings |
 
 export default async function Home() {
   const { isEnabled: isPreview } = await draftMode();
-  const page = await getPage('home', isPreview);
-  const siteSettings = await getSiteSettings(isPreview);
+  const [page, siteSettings, audiences] = await Promise.all([
+    getPage('home', isPreview),
+    getSiteSettings(isPreview),
+    getAudiences(isPreview),
+  ]);
 
   if (!page) {
     return (
@@ -67,6 +71,12 @@ export default async function Home() {
     );
   }
 
+  // Log for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Fetched audiences:', audiences.length);
+    console.log('Modules with experiences:', page.fields.modules.filter((m: any) => m.fields?.nt_experiences?.length > 0).length);
+  }
+
   return (
     <main className="min-h-screen">
       {isPreview && (
@@ -77,7 +87,7 @@ export default async function Home() {
       <TopBanner />
       <Navigation navigation={page.fields.navigation} siteSettings={siteSettings} />
       {page.fields.modules.map((module) => (
-        <ModuleRenderer key={module.sys.id} module={module} />
+        <ModuleRenderer key={module.sys.id} module={module} audiences={audiences} />
       ))}
       <Footer />
     </main>

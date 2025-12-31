@@ -5,9 +5,6 @@ import { useEffect, useState } from 'react';
 /**
  * Component that tracks page views for Ninetailed personalization
  * This should be placed in the page layout to ensure page events are sent on route changes
- * 
- * Note: This component only works when the Ninetailed API key is configured.
- * It gracefully handles cases where personalization is disabled.
  */
 export default function NinetailedPageTracker() {
   const [mounted, setMounted] = useState(false);
@@ -20,30 +17,27 @@ export default function NinetailedPageTracker() {
   useEffect(() => {
     if (!mounted) return;
     
-    // Only track if Ninetailed is available and API key is configured
+    // Only track if Ninetailed API key is configured
     if (!process.env.NEXT_PUBLIC_NINETAILED_API_KEY) return;
 
-    // Use window.ninetailed if available (set by the SDK)
-    const trackPage = () => {
-      const nt = (window as any).ninetailed;
-      if (nt && typeof nt.page === 'function') {
-        nt.page();
+    // Dynamically import to avoid SSR issues
+    const trackPage = async () => {
+      try {
+        const { useNinetailed } = await import('@ninetailed/experience.js-react');
+        // Note: We can't use hooks dynamically, so we'll use the global instance
+        const nt = (window as any).__ninetailed__;
+        if (nt && typeof nt.page === 'function') {
+          nt.page();
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Ninetailed page tracked via global instance');
+          }
+        }
+      } catch (error) {
+        console.error('Error tracking page:', error);
       }
     };
 
-    // Track initial page view
     trackPage();
-
-    // Listen for route changes using popstate event
-    const handleRouteChange = () => {
-      trackPage();
-    };
-
-    window.addEventListener('popstate', handleRouteChange);
-    
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-    };
   }, [mounted]);
 
   return null;

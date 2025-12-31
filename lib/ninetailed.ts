@@ -1,17 +1,54 @@
-import { ExperienceMapper } from '@ninetailed/experience.js-utils-contentful';
-import { Module } from '@/types/contentful';
+import { getContentfulClient } from './contentful';
 
-/**
- * Maps a Contentful entry with nt_experiences to the format expected by Ninetailed's Experience component
- */
-export function mapExperience(entry: Module) {
-  return ExperienceMapper.mapExperience(entry as any);
+export { ExperienceMapper } from '@ninetailed/experience.js-utils-contentful';
+
+export interface NinetailedAudience {
+  sys: {
+    id: string;
+  };
+  fields: {
+    nt_name: string;
+    nt_audience_id: string;
+    nt_description?: string;
+    nt_rules: any;
+  };
 }
 
 /**
- * Checks if an entry has personalization experiences attached
+ * Fetch all published audiences from Contentful
  */
-export function hasExperiences(entry: Module): boolean {
-  return Boolean(entry.fields && 'nt_experiences' in entry.fields && (entry.fields as any).nt_experiences?.length > 0);
+export async function getAudiences(preview: boolean = false): Promise<NinetailedAudience[]> {
+  try {
+    const client = getContentfulClient(preview);
+    const entries = await client.getEntries({
+      content_type: 'nt_audience',
+      include: 2,
+      limit: 100,
+    });
+
+    return entries.items.map((item: any) => ({
+      sys: { id: item.sys.id },
+      fields: {
+        nt_name: item.fields.nt_name,
+        nt_audience_id: item.fields.nt_audience_id,
+        nt_description: item.fields.nt_description,
+        nt_rules: item.fields.nt_rules,
+      },
+    }));
+  } catch (error) {
+    console.error('Error fetching Ninetailed audiences:', error);
+    return [];
+  }
 }
 
+/**
+ * Map audience data for Ninetailed SDK format
+ */
+export function mapAudiencesForSDK(audiences: NinetailedAudience[]) {
+  return audiences.map((audience) => ({
+    id: audience.fields.nt_audience_id,
+    name: audience.fields.nt_name,
+    description: audience.fields.nt_description || '',
+    ...audience.fields.nt_rules,
+  }));
+}
