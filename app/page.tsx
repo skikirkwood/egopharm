@@ -16,14 +16,48 @@ async function getPage(slug: string = 'home', preview: boolean = false): Promise
     const entries = await client.getEntries({
       content_type: 'page',
       'fields.slug': slug,
-      include: 10, // Include linked entries and assets
+      include: 10, // Include linked entries and assets deeply
     });
 
     if (entries.items.length === 0) {
       return null;
     }
 
-    return entries.items[0] as unknown as Page;
+    const page = entries.items[0] as unknown as Page;
+    
+    // Manually resolve nt_experiences links if they weren't resolved
+    if (page.fields.modules) {
+      for (const module of page.fields.modules) {
+        const moduleFields = module.fields as any;
+        if (moduleFields.nt_experiences && Array.isArray(moduleFields.nt_experiences)) {
+          // Check if experiences need resolution
+          const needsResolution = moduleFields.nt_experiences.some(
+            (exp: any) => exp?.sys?.type === 'Link' && !exp?.fields
+          );
+          
+          if (needsResolution) {
+            // Fetch each unresolved experience
+            const resolvedExperiences = await Promise.all(
+              moduleFields.nt_experiences.map(async (exp: any) => {
+                if (exp?.sys?.type === 'Link' && exp?.sys?.id && !exp?.fields) {
+                  try {
+                    const resolved = await client.getEntry(exp.sys.id, { include: 3 });
+                    return resolved;
+                  } catch (e) {
+                    console.warn('Failed to resolve experience:', exp.sys.id);
+                    return exp;
+                  }
+                }
+                return exp;
+              })
+            );
+            moduleFields.nt_experiences = resolvedExperiences;
+          }
+        }
+      }
+    }
+
+    return page;
   } catch (error) {
     console.error('Error fetching page:', error);
     return null;
@@ -74,7 +108,11 @@ export default async function Home() {
   // Log for debugging
   if (process.env.NODE_ENV === 'development') {
     console.log('Fetched audiences:', audiences.length);
-    console.log('Modules with experiences:', page.fields.modules.filter((m: any) => m.fields?.nt_experiences?.length > 0).length);
+    const modulesWithExp = page.fields.modules.filter((m: any) => m.fields?.nt_experiences?.length > 0);
+    console.log('Modules with experiences:', modulesWithExp.length);
+    if (modulesWithExp.length > 0) {
+      console.log('First module experience data:', JSON.stringify(modulesWithExp[0].fields.nt_experiences?.[0], null, 2));
+    }
   }
 
   return (
