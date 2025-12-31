@@ -79,6 +79,7 @@ export default function ModuleRenderer({ module, audiences = [] }: ModuleRendere
   if (process.env.NODE_ENV === 'development' && (module.fields as any)?.nt_experiences?.length > 0) {
     console.log('Module experiences check:', {
       contentType: contentTypeId,
+      moduleId: module.sys.id,
       hasExperiences: Boolean((module.fields as any)?.nt_experiences?.length),
       hasValidExperiences,
       experienceData: (module.fields as any)?.nt_experiences?.[0],
@@ -108,16 +109,8 @@ function PersonalizedModule({
   const { Experience } = require('@ninetailed/experience.js-react');
   const { ExperienceMapper } = require('@ninetailed/experience.js-utils-contentful');
 
-  // Validate the entry before mapping
-  const isValidExperience = ExperienceMapper.isExperienceEntry(module);
-  
-  if (!isValidExperience) {
-    console.warn('Module is not a valid experience entry:', module.sys.id);
-    const props = { [propName]: module };
-    return <Component {...props} />;
-  }
-
   try {
+    // Try to map the experience - skip isExperienceEntry check since it's too strict
     const mapped = ExperienceMapper.mapExperience(module as any) as any;
     
     // Debug logging in development
