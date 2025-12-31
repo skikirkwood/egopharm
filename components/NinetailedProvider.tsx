@@ -1,33 +1,36 @@
 'use client';
 
-import { ReactNode } from 'react';
-import { NinetailedProvider as Provider } from '@ninetailed/experience.js-next';
-import { NinetailedInsightsPlugin } from '@ninetailed/experience.js-plugin-insights';
+import { ReactNode, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 
 interface NinetailedProviderProps {
   children: ReactNode;
 }
 
-export default function NinetailedProvider({ children }: NinetailedProviderProps) {
-  const apiKey = process.env.NEXT_PUBLIC_NINETAILED_API_KEY;
-  const environment = process.env.NEXT_PUBLIC_NINETAILED_ENVIRONMENT || 'main';
+// Dynamically import the Ninetailed provider to avoid SSR issues
+const NinetailedProviderInner = dynamic(
+  () => import('./NinetailedProviderInner'),
+  { ssr: false }
+);
 
-  if (!apiKey) {
-    // When no API key is configured, render children without personalization
-    // This allows the app to work without personalization features
-    console.warn('Ninetailed API key not configured. Personalization will be disabled.');
+export default function NinetailedProvider({ children }: NinetailedProviderProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // During SSR and initial hydration, render children without personalization
+  if (!mounted) {
     return <>{children}</>;
   }
 
-  return (
-    <Provider
-      clientId={apiKey}
-      environment={environment}
-      plugins={[
-        new NinetailedInsightsPlugin(),
-      ]}
-    >
-      {children}
-    </Provider>
-  );
+  const apiKey = process.env.NEXT_PUBLIC_NINETAILED_API_KEY;
+
+  if (!apiKey) {
+    // When no API key is configured, render children without personalization
+    return <>{children}</>;
+  }
+
+  return <NinetailedProviderInner>{children}</NinetailedProviderInner>;
 }
