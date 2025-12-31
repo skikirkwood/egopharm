@@ -3,7 +3,6 @@ import { draftMode } from 'next/headers';
 import './globals.css';
 import ContentfulLivePreviewProvider from '@/components/ContentfulLivePreviewProvider';
 import NinetailedProvider from '@/components/NinetailedProvider';
-import NinetailedPageTracker from '@/components/NinetailedPageTracker';
 
 export const metadata: Metadata = {
   title: 'Ego Pharmaceuticals - The Science of Healthy Skin',
@@ -21,7 +20,6 @@ export default async function RootLayout({
     <html lang="en">
       <body>
         <NinetailedProvider>
-          <NinetailedPageTracker />
           <ContentfulLivePreviewProvider isEnabled={isEnabled}>
             {children}
           </ContentfulLivePreviewProvider>
