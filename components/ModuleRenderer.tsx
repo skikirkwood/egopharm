@@ -34,6 +34,22 @@ const propNameMap: Record<string, string> = {
 // Check if personalization is enabled
 const isPersonalizationEnabled = Boolean(process.env.NEXT_PUBLIC_NINETAILED_API_KEY);
 
+// Check if nt_experiences are fully resolved (not just link references)
+function hasResolvedExperiences(module: any): boolean {
+  const experiences = module.fields?.nt_experiences;
+  if (!Array.isArray(experiences) || experiences.length === 0) {
+    return false;
+  }
+  
+  // Check if the first experience has the required fields resolved
+  const firstExp = experiences[0];
+  return Boolean(
+    firstExp?.fields?.nt_name &&
+    firstExp?.fields?.nt_type &&
+    firstExp?.fields?.nt_experience_id
+  );
+}
+
 export default function ModuleRenderer({ module, audiences = [] }: ModuleRendererProps) {
   const [mounted, setMounted] = useState(false);
   
@@ -56,21 +72,26 @@ export default function ModuleRenderer({ module, audiences = [] }: ModuleRendere
     return null;
   }
 
-  // Check if the module has experiences attached
-  const hasExperiences = Boolean(
-    module.fields && 
-    'nt_experiences' in module.fields && 
-    Array.isArray((module.fields as any).nt_experiences) &&
-    (module.fields as any).nt_experiences.length > 0
-  );
+  // Check if the module has fully resolved experiences attached
+  const hasValidExperiences = hasResolvedExperiences(module);
 
-  // Render baseline during SSR or if no personalization
-  if (!mounted || !isPersonalizationEnabled || !hasExperiences) {
+  // Debug logging
+  if (process.env.NODE_ENV === 'development' && (module.fields as any)?.nt_experiences?.length > 0) {
+    console.log('Module experiences check:', {
+      contentType: contentTypeId,
+      hasExperiences: Boolean((module.fields as any)?.nt_experiences?.length),
+      hasValidExperiences,
+      experienceData: (module.fields as any)?.nt_experiences?.[0],
+    });
+  }
+
+  // Render baseline during SSR, if no personalization, or if experiences aren't resolved
+  if (!mounted || !isPersonalizationEnabled || !hasValidExperiences) {
     const props = { [propName]: module };
     return <Component {...props} />;
   }
 
-  // Only use Experience component on client after mount
+  // Only use Experience component on client after mount with valid experiences
   return <PersonalizedModule module={module} Component={Component} propName={propName} />;
 }
 
@@ -86,6 +107,15 @@ function PersonalizedModule({
 }) {
   const { Experience } = require('@ninetailed/experience.js-react');
   const { ExperienceMapper } = require('@ninetailed/experience.js-utils-contentful');
+
+  // Validate the entry before mapping
+  const isValidExperience = ExperienceMapper.isExperienceEntry(module);
+  
+  if (!isValidExperience) {
+    console.warn('Module is not a valid experience entry:', module.sys.id);
+    const props = { [propName]: module };
+    return <Component {...props} />;
+  }
 
   try {
     const mapped = ExperienceMapper.mapExperience(module as any) as any;
