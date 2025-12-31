@@ -1,19 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Experience } from '@ninetailed/experience.js-next';
+import { ExperienceMapper } from '@ninetailed/experience.js-utils-contentful';
+
 import { Module } from '@/types/contentful';
 import Hero from './Hero';
 import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
-import { Experience } from '@ninetailed/experience.js-react';
 
-interface ModuleRendererProps {
-  module: Module;
-}
-
-// Component mapping
-const componentMap: Record<string, React.ComponentType<any>> = {
+// Component mapping by content type ID
+const ContentTypeMap: Record<string, React.ComponentType<any>> = {
   hero: Hero,
   infoblock: Infoblock,
   imageTriplex: ImageTriplex,
@@ -21,7 +19,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   '6NbIn3MpiND4Hybq2U6NV8': FeaturedNews,
 };
 
-// Prop name mapping
+// Prop name mapping for each component
 const propNameMap: Record<string, string> = {
   hero: 'hero',
   infoblock: 'infoblock',
@@ -30,41 +28,41 @@ const propNameMap: Record<string, string> = {
   '6NbIn3MpiND4Hybq2U6NV8': 'featuredNews',
 };
 
-// Manually build experience configuration from Contentful data
-function buildExperienceConfig(module: any, experience: any): any {
-  const baselineId = module.sys.id;
-  const expFields = experience.fields;
-  
-  const audience = expFields.nt_audience?.fields ? {
-    id: expFields.nt_audience.fields.nt_audience_id || expFields.nt_audience.sys.id,
-    name: expFields.nt_audience.fields.nt_name,
-  } : {
-    id: expFields.nt_audience?.sys?.id,
-  };
+// Component renderer that receives the full entry and renders the appropriate component
+const ComponentRenderer = (props: any) => {
+  const contentTypeId = props.sys?.contentType?.sys?.id;
+  const Component = ContentTypeMap[contentTypeId];
+  const propName = propNameMap[contentTypeId];
 
-  const variants = (expFields.nt_variants || [])
-    .filter((v: any) => v?.fields)
-    .map((v: any) => ({
-      id: v.sys.id,
-      ...v.fields,
-    }));
+  if (!Component) {
+    console.warn(`${contentTypeId} cannot be handled`);
+    return null;
+  }
 
-  return {
-    id: expFields.nt_experience_id || experience.sys.id,
-    name: expFields.nt_name,
-    type: expFields.nt_type || 'nt_personalization',
-    audience,
-    trafficAllocation: expFields.nt_config?.traffic ?? 1,
-    distribution: expFields.nt_config?.distribution || [1],
-    sticky: false,
-    components: [
-      {
-        type: 'EntryReplacement',
-        baseline: { id: baselineId },
-        variants: variants,
-      },
-    ],
-  };
+  // Pass the full entry as the named prop
+  return <Component {...{ [propName]: props }} />;
+};
+
+// Check if entry has experiences
+const hasExperiences = (entry: any): boolean => {
+  return entry?.fields?.nt_experiences !== undefined && 
+         Array.isArray(entry.fields.nt_experiences) &&
+         entry.fields.nt_experiences.length > 0;
+};
+
+// Parse experiences using ExperienceMapper
+const parseExperiences = (entry: any) => {
+  if (!hasExperiences(entry)) {
+    return [];
+  }
+
+  return entry.fields.nt_experiences
+    .filter((experience: any) => ExperienceMapper.isExperienceEntry(experience))
+    .map((experience: any) => ExperienceMapper.mapExperience(experience));
+};
+
+interface ModuleRendererProps {
+  module: Module;
 }
 
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
@@ -74,61 +72,38 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
     setIsClient(true);
   }, []);
 
-  const contentTypeId = module.sys.contentType?.sys?.id as string;
+  const contentTypeId = module.sys?.contentType?.sys?.id as string;
+  const { id } = module.sys;
 
-  if (!contentTypeId) {
+  if (!contentTypeId || !ContentTypeMap[contentTypeId]) {
+    console.warn(`Unknown content type: ${contentTypeId}`);
     return null;
   }
 
-  const Component = componentMap[contentTypeId];
   const propName = propNameMap[contentTypeId];
+  const Component = ContentTypeMap[contentTypeId];
 
-  if (!Component || !propName) {
-    return null;
-  }
-
-  // Helper to render baseline
-  const renderBaseline = () => {
-    const props = { [propName]: module };
-    return <Component {...props} />;
-  };
-
-  // Check if module has experiences with variants
-  const moduleFields = module.fields as any;
-  const experiences = moduleFields?.nt_experiences;
-  const hasExperiences = Array.isArray(experiences) && experiences.length > 0 && 
-    experiences.some((exp: any) => exp?.fields?.nt_variants?.length > 0);
-
-  // If no experiences, render baseline directly
-  if (!hasExperiences) {
-    return renderBaseline();
-  }
-
-  // Build experience configurations
-  const mappedExperiences = experiences
-    .filter((exp: any) => exp?.fields)
-    .map((exp: any) => buildExperienceConfig(module, exp))
-    .filter((exp: any) => exp.components[0].variants.length > 0);
-
-  if (mappedExperiences.length === 0) {
-    return renderBaseline();
-  }
-
-  // During SSR, render baseline (matching what Experience will initially show)
+  // During SSR, render the baseline component directly
+  // This prevents the "must be a descendant of NinetailedProvider" error
   if (!isClient) {
-    return renderBaseline();
+    return <Component {...{ [propName]: module }} />;
   }
 
-  // Use Ninetailed Experience component for personalization
+  const parsedExperiences = parseExperiences(module);
+
+  // If no experiences, just render the component
+  if (parsedExperiences.length === 0) {
+    return <Component {...{ [propName]: module }} />;
+  }
+
+  // On client, use Experience component for personalization
   return (
     <Experience
-      id={module.sys.id}
-      component={(props: any) => {
-        const componentProps = { [propName]: { sys: module.sys, fields: props } };
-        return <Component {...componentProps} />;
-      }}
-      experiences={mappedExperiences}
-      {...module.fields}
+      key={`${contentTypeId}-${id}`}
+      {...module}
+      id={id}
+      component={ComponentRenderer}
+      experiences={parsedExperiences}
     />
   );
 }
