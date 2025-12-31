@@ -6,10 +6,10 @@ import Hero from './Hero';
 import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
+import { Experience } from '@ninetailed/experience.js-react';
 
 interface ModuleRendererProps {
   module: Module;
-  audiences?: any[];
 }
 
 // Component mapping
@@ -33,82 +33,44 @@ const propNameMap: Record<string, string> = {
 // Check if personalization is enabled
 const isPersonalizationEnabled = Boolean(process.env.NEXT_PUBLIC_NINETAILED_API_KEY);
 
-// Simple audience evaluation
-function evaluateAudience(audienceId: string): boolean {
-  if (typeof window === 'undefined') return false;
-  
-  // Get or initialize session data
-  const sessionKey = 'nt_session_count';
-  let sessionCount = parseInt(localStorage.getItem(sessionKey) || '0', 10);
-  
-  // Increment on first load (check if already incremented this session)
-  const incrementedKey = 'nt_session_incremented';
-  if (!sessionStorage.getItem(incrementedKey)) {
-    sessionCount += 1;
-    localStorage.setItem(sessionKey, sessionCount.toString());
-    sessionStorage.setItem(incrementedKey, 'true');
-  }
-
-  // Evaluate based on audience ID
-  switch (audienceId) {
-    case 'first-time-visitors':
-    case '1gzx0CkXGwAQ77hVz1xAxO':
-      return sessionCount === 1;
-    case 'returning-visitors':
-    case '1xiuGtdSM2GJSQMPlJn3N5':
-      return sessionCount > 1;
-    default:
-      return false;
-  }
-}
-
-// Get the variant to show based on audience matching
-function getPersonalizedVariant(module: any): any | null {
+// Transform Contentful experience data to Ninetailed SDK format
+function transformExperiences(module: any): any[] {
   const experiences = module.fields?.nt_experiences;
   if (!Array.isArray(experiences) || experiences.length === 0) {
-    return null;
+    return [];
   }
 
-  for (const experience of experiences) {
-    // Skip unresolved links
-    if (!experience.fields) continue;
-    
-    const audienceLink = experience.fields?.nt_audience;
-    const audienceId = audienceLink?.sys?.id || audienceLink?.fields?.nt_audience_id;
-    
-    if (audienceId && evaluateAudience(audienceId)) {
-      // Get the first variant
-      const variants = experience.fields?.nt_variants;
-      if (Array.isArray(variants) && variants.length > 0) {
-        const variant = variants[0];
-        // Return the variant if it has fields (resolved)
-        if (variant.fields) {
-          return variant;
-        }
-      }
-    }
-  }
-
-  return null;
+  return experiences
+    .filter((exp: any) => exp?.fields) // Only resolved experiences
+    .map((exp: any) => {
+      const audienceId = exp.fields?.nt_audience?.fields?.nt_audience_id || 
+                         exp.fields?.nt_audience?.sys?.id;
+      
+      const variants = exp.fields?.nt_variants || [];
+      
+      return {
+        id: exp.fields?.nt_experience_id || exp.sys?.id,
+        name: exp.fields?.nt_name,
+        type: exp.fields?.nt_type === 'nt_personalization' ? 'nt_personalization' : 'nt_experiment',
+        config: exp.fields?.nt_config || { traffic: 1, distribution: [1] },
+        audience: audienceId ? { id: audienceId } : undefined,
+        variants: variants
+          .filter((v: any) => v?.fields)
+          .map((v: any) => ({
+            id: v.sys?.id,
+            ...v.fields,
+          })),
+      };
+    })
+    .filter((exp: any) => exp.variants.length > 0); // Only experiences with resolved variants
 }
 
-export default function ModuleRenderer({ module, audiences = [] }: ModuleRendererProps) {
+export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const [mounted, setMounted] = useState(false);
-  const [variant, setVariant] = useState<any>(null);
   
   useEffect(() => {
     setMounted(true);
-    
-    if (isPersonalizationEnabled) {
-      const personalizedVariant = getPersonalizedVariant(module);
-      if (personalizedVariant) {
-        setVariant(personalizedVariant);
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Personalization: Showing variant', personalizedVariant.sys?.id);
-        }
-      }
-    }
-  }, [module]);
+  }, []);
 
   const contentTypeId = module.sys.contentType?.sys?.id as string;
 
@@ -125,9 +87,41 @@ export default function ModuleRenderer({ module, audiences = [] }: ModuleRendere
     return null;
   }
 
-  // Use variant if available and mounted, otherwise use baseline
-  const moduleToRender = (mounted && variant) ? variant : module;
-  const props = { [propName]: moduleToRender };
-  
-  return <Component {...props} />;
+  // Check if module has experiences
+  const hasExperiences = Boolean(
+    (module.fields as any)?.nt_experiences?.length > 0
+  );
+
+  // Render baseline during SSR or if no personalization
+  if (!mounted || !isPersonalizationEnabled || !hasExperiences) {
+    const props = { [propName]: module };
+    return <Component {...props} />;
+  }
+
+  // Transform experiences for Ninetailed SDK
+  const experiences = transformExperiences(module);
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Ninetailed experiences for', contentTypeId, ':', experiences);
+  }
+
+  // If no valid experiences after transformation, render baseline
+  if (experiences.length === 0) {
+    const props = { [propName]: module };
+    return <Component {...props} />;
+  }
+
+  // Render with Ninetailed Experience component
+  return (
+    <Experience
+      id={module.sys.id}
+      component={(props: any) => {
+        const componentProps = { [propName]: { sys: module.sys, fields: props } };
+        return <Component {...componentProps} />;
+      }}
+      experiences={experiences}
+      {...module.fields}
+    />
+  );
 }

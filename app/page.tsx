@@ -139,10 +139,12 @@ export default async function Home() {
     console.log('Modules with experiences:', modulesWithExp.length);
     if (modulesWithExp.length > 0) {
       const exp = (modulesWithExp[0].fields as any).nt_experiences?.[0];
-      console.log('Experience resolved:', {
+      console.log('Experience data:', {
         hasFields: Boolean(exp?.fields),
         name: exp?.fields?.nt_name,
-        hasVariants: Boolean(exp?.fields?.nt_variants?.length),
+        type: exp?.fields?.nt_type,
+        audienceId: exp?.fields?.nt_audience?.fields?.nt_audience_id || exp?.fields?.nt_audience?.sys?.id,
+        variantCount: exp?.fields?.nt_variants?.length,
         variantResolved: Boolean(exp?.fields?.nt_variants?.[0]?.fields),
       });
     }
