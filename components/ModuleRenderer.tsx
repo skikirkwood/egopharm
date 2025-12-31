@@ -78,15 +78,29 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const mappedExperiences: any[] = [];
   
   for (const exp of experiences) {
+    console.log('Processing experience:', {
+      id: exp?.sys?.id,
+      hasFields: !!exp?.fields,
+      isValidEntry: false,
+    });
+    
     try {
-      if (ExperienceMapper.isExperienceEntry(exp)) {
+      const isValid = ExperienceMapper.isExperienceEntry(exp);
+      console.log('isExperienceEntry result:', isValid, exp);
+      
+      if (isValid) {
         const mapped = ExperienceMapper.mapExperience(exp);
+        console.log('Mapped experience:', mapped);
         mappedExperiences.push(mapped);
+      } else {
+        console.warn('Experience entry failed validation:', exp);
       }
     } catch (error) {
-      console.warn('Error mapping experience:', error);
+      console.error('Error mapping experience:', error);
     }
   }
+  
+  console.log('Final mapped experiences:', mappedExperiences);
 
   // If no valid experiences after mapping, render baseline
   if (mappedExperiences.length === 0) {
