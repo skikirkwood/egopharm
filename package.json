@@ -17,6 +17,7 @@
     "@ninetailed/experience.js-next": "^7.18.9",
     "@ninetailed/experience.js-plugin-insights": "^7.18.9",
     "@ninetailed/experience.js-react": "^7.18.9",
+    "@ninetailed/experience.js-shared": "^7.18.9",
     "@ninetailed/experience.js-utils-contentful": "^7.18.9",
     "contentful": "^10.12.0",
     "contentful-management": "^10.12.0",

@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Module } from '@/types/contentful';
 import Hero from './Hero';
 import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
-import { Experience, useNinetailed } from '@ninetailed/experience.js-react';
 
 interface ModuleRendererProps {
   module: Module;
@@ -30,77 +29,73 @@ const propNameMap: Record<string, string> = {
   '6NbIn3MpiND4Hybq2U6NV8': 'featuredNews',
 };
 
-// Manually build experience configuration from Contentful data
-function buildExperienceConfig(module: any, experience: any): any {
-  const baselineId = module.sys.id;
-  const expFields = experience.fields;
+// Get selected variant from edge-computed experiences
+function getSelectedVariant(module: any, experiences: any[]): any | null {
+  const moduleFields = module.fields as any;
+  const moduleExperiences = moduleFields?.nt_experiences;
   
-  const audience = expFields.nt_audience?.fields ? {
-    id: expFields.nt_audience.fields.nt_audience_id || expFields.nt_audience.sys.id,
-    name: expFields.nt_audience.fields.nt_name,
-  } : {
-    id: expFields.nt_audience?.sys?.id,
-  };
+  if (!Array.isArray(moduleExperiences) || moduleExperiences.length === 0) {
+    return null;
+  }
 
-  const variants = (expFields.nt_variants || [])
-    .filter((v: any) => v?.fields)
-    .map((v: any) => ({
-      id: v.sys.id,
-      ...v.fields,
-    }));
+  // Find matching experience from edge-computed results
+  for (const exp of moduleExperiences) {
+    if (!exp?.fields) continue;
+    
+    const experienceId = exp.fields.nt_experience_id || exp.sys.id;
+    const edgeExp = experiences.find((e: any) => e.experienceId === experienceId);
+    
+    if (edgeExp && edgeExp.variantIndex > 0) {
+      // variantIndex > 0 means a variant was selected (0 = baseline)
+      const variants = exp.fields.nt_variants || [];
+      const selectedVariant = variants[edgeExp.variantIndex - 1];
+      
+      if (selectedVariant?.fields) {
+        return selectedVariant;
+      }
+    }
+  }
 
-  return {
-    id: expFields.nt_experience_id || experience.sys.id,
-    name: expFields.nt_name,
-    type: expFields.nt_type || 'nt_personalization',
-    audience,
-    trafficAllocation: expFields.nt_config?.traffic ?? 1,
-    distribution: expFields.nt_config?.distribution || [1],
-    sticky: false,
-    components: [
-      {
-        type: 'EntryReplacement',
-        baseline: { id: baselineId },
-        variants: variants,
-      },
-    ],
-  };
+  return null;
 }
 
-// Inner component that uses Ninetailed hooks (only renders on client)
-function PersonalizedModule({ 
-  module, 
-  Component, 
-  propName,
-  mappedExperiences 
-}: { 
-  module: any; 
-  Component: React.ComponentType<any>; 
-  propName: string;
-  mappedExperiences: any[];
-}) {
-  return (
-    <Experience
-      id={module.sys.id}
-      component={(props: any) => {
-        const componentProps = { [propName]: { sys: module.sys, fields: props } };
-        return <Component {...componentProps} />;
-      }}
-      experiences={mappedExperiences}
-      {...module.fields}
-    />
-  );
+// Parse experiences cookie
+function getExperiencesFromCookie(): any[] {
+  if (typeof document === 'undefined') return [];
+  
+  try {
+    const cookie = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('ninetailed_experiences='));
+    
+    if (cookie) {
+      const value = decodeURIComponent(cookie.split('=')[1]);
+      return JSON.parse(value) || [];
+    }
+  } catch (e) {
+    console.warn('Failed to parse ninetailed_experiences cookie:', e);
+  }
+  
+  return [];
 }
 
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
-  const [isClient, setIsClient] = useState(false);
-  const hasRenderedRef = useRef(false);
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Set client flag after initial mount
-    setIsClient(true);
-    hasRenderedRef.current = true;
-  }, []);
+    // Read edge-computed experiences from cookie
+    const experiences = getExperiencesFromCookie();
+    
+    if (experiences.length > 0) {
+      const variant = getSelectedVariant(module, experiences);
+      if (variant) {
+        setSelectedVariant(variant);
+      }
+    }
+    
+    setIsReady(true);
+  }, [module]);
 
   const contentTypeId = module.sys.contentType?.sys?.id as string;
 
@@ -115,11 +110,11 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
     return null;
   }
 
-  // Check if module has experiences with variants
+  // Check if module has experiences
   const moduleFields = module.fields as any;
-  const experiences = moduleFields?.nt_experiences;
-  const hasExperiences = Array.isArray(experiences) && experiences.length > 0 && 
-    experiences.some((exp: any) => exp?.fields?.nt_variants?.length > 0);
+  const hasExperiences = Array.isArray(moduleFields?.nt_experiences) && 
+    moduleFields.nt_experiences.length > 0 &&
+    moduleFields.nt_experiences.some((exp: any) => exp?.fields?.nt_variants?.length > 0);
 
   // If no experiences, render baseline directly
   if (!hasExperiences) {
@@ -127,31 +122,18 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
     return <Component {...props} />;
   }
 
-  // Build experience configurations
-  const mappedExperiences = experiences
-    .filter((exp: any) => exp?.fields)
-    .map((exp: any) => buildExperienceConfig(module, exp))
-    .filter((exp: any) => exp.components[0].variants.length > 0);
-
-  if (mappedExperiences.length === 0) {
-    const props = { [propName]: module };
+  // If we have a selected variant from edge, use it
+  if (selectedVariant) {
+    const variantModule = {
+      sys: selectedVariant.sys || module.sys,
+      fields: selectedVariant.fields || selectedVariant,
+    };
+    const props = { [propName]: variantModule };
     return <Component {...props} />;
   }
 
-  // On server or first client render: render baseline 
-  // This ensures SSR and initial hydration match
-  if (!isClient) {
-    const props = { [propName]: module };
-    return <Component {...props} />;
-  }
-
-  // After hydration: use Experience component for personalization
-  return (
-    <PersonalizedModule
-      module={module}
-      Component={Component}
-      propName={propName}
-      mappedExperiences={mappedExperiences}
-    />
-  );
+  // Before edge result is processed, render baseline
+  // This should be very quick since edge already computed the result
+  const props = { [propName]: module };
+  return <Component {...props} />;
 }
