@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Module } from '@/types/contentful';
 import Hero from './Hero';
 import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
-import { Experience } from '@ninetailed/experience.js-react';
+import { Experience, useNinetailed } from '@ninetailed/experience.js-react';
 
 interface ModuleRendererProps {
   module: Module;
@@ -35,7 +35,6 @@ function buildExperienceConfig(module: any, experience: any): any {
   const baselineId = module.sys.id;
   const expFields = experience.fields;
   
-  // Get audience info
   const audience = expFields.nt_audience?.fields ? {
     id: expFields.nt_audience.fields.nt_audience_id || expFields.nt_audience.sys.id,
     name: expFields.nt_audience.fields.nt_name,
@@ -43,7 +42,6 @@ function buildExperienceConfig(module: any, experience: any): any {
     id: expFields.nt_audience?.sys?.id,
   };
 
-  // Get variants with their full data
   const variants = (expFields.nt_variants || [])
     .filter((v: any) => v?.fields)
     .map((v: any) => ({
@@ -51,7 +49,6 @@ function buildExperienceConfig(module: any, experience: any): any {
       ...v.fields,
     }));
 
-  // Build the experience configuration that the SDK expects
   return {
     id: expFields.nt_experience_id || experience.sys.id,
     name: expFields.nt_name,
@@ -63,20 +60,46 @@ function buildExperienceConfig(module: any, experience: any): any {
     components: [
       {
         type: 'EntryReplacement',
-        baseline: {
-          id: baselineId,
-        },
+        baseline: { id: baselineId },
         variants: variants,
       },
     ],
   };
 }
 
+// Inner component that uses Ninetailed hooks (only renders on client)
+function PersonalizedModule({ 
+  module, 
+  Component, 
+  propName,
+  mappedExperiences 
+}: { 
+  module: any; 
+  Component: React.ComponentType<any>; 
+  propName: string;
+  mappedExperiences: any[];
+}) {
+  return (
+    <Experience
+      id={module.sys.id}
+      component={(props: any) => {
+        const componentProps = { [propName]: { sys: module.sys, fields: props } };
+        return <Component {...componentProps} />;
+      }}
+      experiences={mappedExperiences}
+      {...module.fields}
+    />
+  );
+}
+
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const hasRenderedRef = useRef(false);
 
   useEffect(() => {
-    setMounted(true);
+    // Set client flag after initial mount
+    setIsClient(true);
+    hasRenderedRef.current = true;
   }, []);
 
   const contentTypeId = module.sys.contentType?.sys?.id as string;
@@ -89,55 +112,46 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const propName = propNameMap[contentTypeId];
 
   if (!Component || !propName) {
-    console.warn(`Unknown content type: ${contentTypeId}`);
     return null;
   }
 
-  // Helper to render baseline
-  const renderBaseline = () => {
-    const props = { [propName]: module };
-    return <Component {...props} />;
-  };
-
-  // Check if module has experiences
+  // Check if module has experiences with variants
   const moduleFields = module.fields as any;
   const experiences = moduleFields?.nt_experiences;
-  const hasExperiences = Array.isArray(experiences) && experiences.length > 0;
+  const hasExperiences = Array.isArray(experiences) && experiences.length > 0 && 
+    experiences.some((exp: any) => exp?.fields?.nt_variants?.length > 0);
 
   // If no experiences, render baseline directly
   if (!hasExperiences) {
-    return renderBaseline();
+    const props = { [propName]: module };
+    return <Component {...props} />;
   }
 
-  // During SSR, render baseline
-  if (!mounted) {
-    return renderBaseline();
-  }
-
-  // Build experience configurations manually
+  // Build experience configurations
   const mappedExperiences = experiences
     .filter((exp: any) => exp?.fields)
     .map((exp: any) => buildExperienceConfig(module, exp))
     .filter((exp: any) => exp.components[0].variants.length > 0);
 
-  console.log('Built experience config:', mappedExperiences);
-
   if (mappedExperiences.length === 0) {
-    return renderBaseline();
+    const props = { [propName]: module };
+    return <Component {...props} />;
   }
 
-  // Use Ninetailed Experience component
+  // On server or first client render: render baseline 
+  // This ensures SSR and initial hydration match
+  if (!isClient) {
+    const props = { [propName]: module };
+    return <Component {...props} />;
+  }
+
+  // After hydration: use Experience component for personalization
   return (
-    <Experience
-      id={module.sys.id}
-      component={(props: any) => {
-        console.log('Experience rendering variant:', props.title || props.id);
-        const componentProps = { [propName]: { sys: module.sys, fields: props } };
-        return <Component {...componentProps} />;
-      }}
-      loadingComponent={() => renderBaseline()}
-      experiences={mappedExperiences}
-      {...module.fields}
+    <PersonalizedModule
+      module={module}
+      Component={Component}
+      propName={propName}
+      mappedExperiences={mappedExperiences}
     />
   );
 }

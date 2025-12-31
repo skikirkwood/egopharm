@@ -18,3 +18,17 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Ninetailed personalization transitions */
+.ninetailed-loading,
+.ninetailed-ready {
+  animation: ninetailed-fade-in 0.15s ease-out;
+}
+
+@keyframes ninetailed-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
