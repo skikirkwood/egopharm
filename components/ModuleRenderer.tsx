@@ -35,24 +35,41 @@ function getSelectedVariant(module: any, experiences: any[]): any | null {
   const moduleExperiences = moduleFields?.nt_experiences;
   
   if (!Array.isArray(moduleExperiences) || moduleExperiences.length === 0) {
+    console.log('[ModuleRenderer] No module experiences');
     return null;
   }
 
+  console.log('[ModuleRenderer] Checking', moduleExperiences.length, 'module experiences against', experiences.length, 'edge experiences');
+
   // Find matching experience from edge-computed results
   for (const exp of moduleExperiences) {
-    if (!exp?.fields) continue;
+    if (!exp?.fields) {
+      console.log('[ModuleRenderer] Experience missing fields');
+      continue;
+    }
     
     const experienceId = exp.fields.nt_experience_id || exp.sys.id;
+    console.log('[ModuleRenderer] Looking for experience:', experienceId);
+    
     const edgeExp = experiences.find((e: any) => e.experienceId === experienceId);
     
-    if (edgeExp && edgeExp.variantIndex > 0) {
-      // variantIndex > 0 means a variant was selected (0 = baseline)
-      const variants = exp.fields.nt_variants || [];
-      const selectedVariant = variants[edgeExp.variantIndex - 1];
-      
-      if (selectedVariant?.fields) {
-        return selectedVariant;
+    if (edgeExp) {
+      console.log('[ModuleRenderer] Found edge experience:', edgeExp);
+      if (edgeExp.variantIndex > 0) {
+        // variantIndex > 0 means a variant was selected (0 = baseline)
+        const variants = exp.fields.nt_variants || [];
+        console.log('[ModuleRenderer] variantIndex:', edgeExp.variantIndex, 'variants:', variants.length);
+        const selectedVariant = variants[edgeExp.variantIndex - 1];
+        
+        if (selectedVariant?.fields) {
+          console.log('[ModuleRenderer] Selected variant:', selectedVariant.fields.title);
+          return selectedVariant;
+        }
+      } else {
+        console.log('[ModuleRenderer] variantIndex is 0, showing baseline');
       }
+    } else {
+      console.log('[ModuleRenderer] No matching edge experience for:', experienceId);
     }
   }
 
@@ -70,10 +87,15 @@ function getExperiencesFromCookie(): any[] {
     
     if (cookie) {
       const value = decodeURIComponent(cookie.split('=')[1]);
-      return JSON.parse(value) || [];
+      const parsed = JSON.parse(value) || [];
+      console.log('[ModuleRenderer] Experiences from cookie:', parsed);
+      return parsed;
+    } else {
+      console.log('[ModuleRenderer] No ninetailed_experiences cookie found');
+      console.log('[ModuleRenderer] All cookies:', document.cookie);
     }
   } catch (e) {
-    console.warn('Failed to parse ninetailed_experiences cookie:', e);
+    console.warn('[ModuleRenderer] Failed to parse ninetailed_experiences cookie:', e);
   }
   
   return [];

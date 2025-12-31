@@ -23,18 +23,25 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  console.log('[Ninetailed Middleware] Processing:', request.nextUrl.pathname);
+
   try {
     // Get or create profile ID from cookie
     let profileId = request.cookies.get(NINETAILED_PROFILE_ID_COOKIE)?.value;
     const isNewVisitor = !profileId;
+
+    console.log('[Ninetailed Middleware] Profile ID from cookie:', profileId || 'none (new visitor)');
 
     let profileResponse;
 
     if (profileId) {
       // Returning visitor - get existing profile
       try {
+        console.log('[Ninetailed Middleware] Getting existing profile...');
         profileResponse = await ninetailedApiClient.getProfile(profileId);
+        console.log('[Ninetailed Middleware] Got profile:', JSON.stringify(profileResponse?.profile?.audiences || []));
       } catch (e) {
+        console.log('[Ninetailed Middleware] Failed to get profile, will create new:', e);
         // Profile might not exist, create a new one
         profileId = undefined;
       }
@@ -42,10 +49,12 @@ export async function middleware(request: NextRequest) {
 
     if (!profileId) {
       // New visitor - create profile
+      console.log('[Ninetailed Middleware] Creating new profile...');
       profileId = crypto.randomUUID();
       profileResponse = await ninetailedApiClient.createProfile({
         events: [],
       });
+      console.log('[Ninetailed Middleware] Created profile:', JSON.stringify(profileResponse?.profile || {}));
       // Use the ID from the created profile
       if (profileResponse?.profile?.id) {
         profileId = profileResponse.profile.id;
@@ -62,6 +71,7 @@ export async function middleware(request: NextRequest) {
 
     // Store experiences data for the page to use
     if (profileResponse?.experiences) {
+      console.log('[Ninetailed Middleware] Setting experiences cookie:', profileResponse.experiences.length, 'experiences');
       const experiencesData = JSON.stringify(profileResponse.experiences);
       response.cookies.set(NINETAILED_EXPERIENCES_COOKIE, experiencesData, {
         httpOnly: false, // Needs to be readable by client
@@ -69,10 +79,13 @@ export async function middleware(request: NextRequest) {
         sameSite: 'lax',
         maxAge: 60 * 5, // 5 minutes - short lived as it may change
       });
+    } else {
+      console.log('[Ninetailed Middleware] No experiences in response');
     }
 
     // Also set the profile data for debugging/client SDK
     if (profileResponse?.profile) {
+      console.log('[Ninetailed Middleware] Setting profile cookie with audiences:', profileResponse.profile.audiences);
       response.cookies.set('ninetailed_profile', JSON.stringify({
         id: profileResponse.profile.id,
         audiences: profileResponse.profile.audiences,
@@ -87,6 +100,8 @@ export async function middleware(request: NextRequest) {
         sameSite: 'lax',
         maxAge: 60 * 5,
       });
+    } else {
+      console.log('[Ninetailed Middleware] No profile in response');
     }
 
   } catch (error) {
