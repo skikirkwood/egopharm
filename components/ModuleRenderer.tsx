@@ -7,7 +7,6 @@ import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
 import { Experience } from '@ninetailed/experience.js-react';
-import { ExperienceMapper } from '@ninetailed/experience.js-utils-contentful';
 
 interface ModuleRendererProps {
   module: Module;
@@ -31,25 +30,58 @@ const propNameMap: Record<string, string> = {
   '6NbIn3MpiND4Hybq2U6NV8': 'featuredNews',
 };
 
+// Manually build experience configuration from Contentful data
+function buildExperienceConfig(module: any, experience: any): any {
+  const baselineId = module.sys.id;
+  const expFields = experience.fields;
+  
+  // Get audience info
+  const audience = expFields.nt_audience?.fields ? {
+    id: expFields.nt_audience.fields.nt_audience_id || expFields.nt_audience.sys.id,
+    name: expFields.nt_audience.fields.nt_name,
+  } : {
+    id: expFields.nt_audience?.sys?.id,
+  };
+
+  // Get variants with their full data
+  const variants = (expFields.nt_variants || [])
+    .filter((v: any) => v?.fields)
+    .map((v: any) => ({
+      id: v.sys.id,
+      ...v.fields,
+    }));
+
+  // Build the experience configuration that the SDK expects
+  return {
+    id: expFields.nt_experience_id || experience.sys.id,
+    name: expFields.nt_name,
+    type: expFields.nt_type || 'nt_personalization',
+    audience,
+    trafficAllocation: expFields.nt_config?.traffic ?? 1,
+    distribution: expFields.nt_config?.distribution || [1],
+    sticky: false,
+    components: [
+      {
+        type: 'EntryReplacement',
+        baseline: {
+          id: baselineId,
+        },
+        variants: variants,
+      },
+    ],
+  };
+}
+
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    console.log('ModuleRenderer useEffect - setting mounted to true');
     setMounted(true);
   }, []);
-
-  // Log every render
-  console.log('ModuleRenderer RENDER:', {
-    contentType: module.sys.contentType?.sys?.id,
-    moduleId: module.sys.id,
-    mounted,
-  });
 
   const contentTypeId = module.sys.contentType?.sys?.id as string;
 
   if (!contentTypeId) {
-    console.warn('Module has no content type ID:', module);
     return null;
   }
 
@@ -72,56 +104,40 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const experiences = moduleFields?.nt_experiences;
   const hasExperiences = Array.isArray(experiences) && experiences.length > 0;
 
-  console.log('ModuleRenderer for', contentTypeId, ':', {
-    hasExperiences,
-    experiencesLength: experiences?.length,
-    experiencesRaw: experiences,
-    mounted,
-  });
-
   // If no experiences, render baseline directly
   if (!hasExperiences) {
-    console.log('No experiences found, rendering baseline');
     return renderBaseline();
   }
 
-  // During SSR, render baseline - Experience component requires provider context
+  // During SSR, render baseline
   if (!mounted) {
-    console.log('Not mounted yet, rendering baseline');
     return renderBaseline();
   }
 
-  // Use mapBaselineWithExperiences to properly create the experience configuration
-  // This method takes the baseline entry (module) and returns mapped experiences
-  try {
-    const mappedExperiences = ExperienceMapper.mapBaselineWithExperiences(module as any);
-    
-    console.log('Mapped experiences from baseline:', mappedExperiences);
+  // Build experience configurations manually
+  const mappedExperiences = experiences
+    .filter((exp: any) => exp?.fields)
+    .map((exp: any) => buildExperienceConfig(module, exp))
+    .filter((exp: any) => exp.components[0].variants.length > 0);
 
-    if (!mappedExperiences || mappedExperiences.length === 0) {
-      console.log('No valid mapped experiences, rendering baseline');
-      return renderBaseline();
-    }
+  console.log('Built experience config:', mappedExperiences);
 
-    // Use Ninetailed Experience component
-    return (
-      <Experience
-        id={module.sys.id}
-        component={(props: any) => {
-          console.log('Experience component rendering with props:', props);
-          const componentProps = { [propName]: { sys: module.sys, fields: props } };
-          return <Component {...componentProps} />;
-        }}
-        loadingComponent={() => {
-          console.log('Experience loading component');
-          return renderBaseline();
-        }}
-        experiences={mappedExperiences}
-        {...module.fields}
-      />
-    );
-  } catch (error) {
-    console.error('Error mapping experiences:', error);
+  if (mappedExperiences.length === 0) {
     return renderBaseline();
   }
+
+  // Use Ninetailed Experience component
+  return (
+    <Experience
+      id={module.sys.id}
+      component={(props: any) => {
+        console.log('Experience rendering variant:', props.title || props.id);
+        const componentProps = { [propName]: { sys: module.sys, fields: props } };
+        return <Component {...componentProps} />;
+      }}
+      loadingComponent={() => renderBaseline()}
+      experiences={mappedExperiences}
+      {...module.fields}
+    />
+  );
 }
