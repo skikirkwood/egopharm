@@ -6,7 +6,6 @@ import Hero from './Hero';
 import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
-import { Experience } from '@ninetailed/experience.js-react';
 
 interface ModuleRendererProps {
   module: Module;
@@ -33,36 +32,117 @@ const propNameMap: Record<string, string> = {
 // Check if personalization is enabled
 const isPersonalizationEnabled = Boolean(process.env.NEXT_PUBLIC_NINETAILED_API_KEY);
 
-// Transform Contentful experience data to Ninetailed SDK format
-function transformExperiences(module: any): any[] {
-  const experiences = module.fields?.nt_experiences;
-  if (!Array.isArray(experiences) || experiences.length === 0) {
-    return [];
+// Inner component that uses the Ninetailed hook
+function PersonalizedModuleRenderer({ 
+  module, 
+  Component, 
+  propName 
+}: { 
+  module: Module; 
+  Component: React.ComponentType<any>; 
+  propName: string;
+}) {
+  // Import useProfile dynamically to avoid SSR issues
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Dynamically import and use the hook
+    import('@ninetailed/experience.js-react').then(({ useProfile }) => {
+      // This is a workaround - we'll access the profile through the window object
+      // set by the SDK, since we can't call hooks inside useEffect
+    });
+    
+    // Poll for profile from window.ninetailed
+    const checkProfile = () => {
+      const nt = (window as any).ninetailed;
+      if (nt?.profileState?.profile) {
+        setProfileData(nt.profileState.profile);
+        setLoading(false);
+      }
+    };
+
+    // Check immediately and then poll
+    checkProfile();
+    const interval = setInterval(checkProfile, 100);
+    
+    // Cleanup after 5 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      setLoading(false);
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, []);
+
+  // Helper to render baseline
+  const renderBaseline = () => {
+    const props = { [propName]: module };
+    return <Component {...props} />;
+  };
+
+  if (loading || !profileData) {
+    return renderBaseline();
   }
 
-  return experiences
-    .filter((exp: any) => exp?.fields) // Only resolved experiences
-    .map((exp: any) => {
-      const audienceId = exp.fields?.nt_audience?.fields?.nt_audience_id || 
-                         exp.fields?.nt_audience?.sys?.id;
-      
-      const variants = exp.fields?.nt_variants || [];
-      
-      return {
-        id: exp.fields?.nt_experience_id || exp.sys?.id,
-        name: exp.fields?.nt_name,
-        type: exp.fields?.nt_type === 'nt_personalization' ? 'nt_personalization' : 'nt_experiment',
-        config: exp.fields?.nt_config || { traffic: 1, distribution: [1] },
-        audience: audienceId ? { id: audienceId } : undefined,
-        variants: variants
-          .filter((v: any) => v?.fields)
-          .map((v: any) => ({
-            id: v.sys?.id,
-            ...v.fields,
-          })),
-      };
-    })
-    .filter((exp: any) => exp.variants.length > 0); // Only experiences with resolved variants
+  // Check if module has experiences
+  const moduleFields = module.fields as any;
+  const experiences = moduleFields?.nt_experiences;
+  
+  if (!Array.isArray(experiences) || experiences.length === 0) {
+    return renderBaseline();
+  }
+
+  // Debug logging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Ninetailed profile:', profileData);
+    console.log('Module experiences:', experiences);
+  }
+
+  // Find matching experience based on profile audiences
+  let variantToRender: any = null;
+  const profileAudiences = profileData.audiences || [];
+
+  for (const exp of experiences) {
+    if (!exp?.fields) continue;
+
+    // Get the audience ID for this experience
+    const audienceId = exp.fields.nt_audience?.fields?.nt_audience_id || 
+                       exp.fields.nt_audience?.sys?.id;
+
+    if (!audienceId) continue;
+
+    // Check if user is in this audience
+    const isInAudience = profileAudiences.some(
+      (aud: string) => aud === audienceId
+    );
+
+    if (isInAudience && exp.fields.nt_variants?.length > 0) {
+      // User matches this audience - get the first variant
+      const variant = exp.fields.nt_variants[0];
+      if (variant?.fields) {
+        variantToRender = {
+          sys: variant.sys,
+          fields: variant.fields,
+        };
+        break;
+      }
+    }
+  }
+
+  // Render variant if found, otherwise baseline
+  if (variantToRender) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Rendering personalized variant:', variantToRender.fields?.title);
+    }
+    const props = { [propName]: variantToRender };
+    return <Component {...props} />;
+  }
+
+  return renderBaseline();
 }
 
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
@@ -87,41 +167,28 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
     return null;
   }
 
+  // Helper to render baseline
+  const renderBaseline = () => {
+    const props = { [propName]: module };
+    return <Component {...props} />;
+  };
+
   // Check if module has experiences
   const hasExperiences = Boolean(
     (module.fields as any)?.nt_experiences?.length > 0
   );
 
-  // Render baseline during SSR or if no personalization
+  // Render baseline during SSR or if no personalization or no experiences
   if (!mounted || !isPersonalizationEnabled || !hasExperiences) {
-    const props = { [propName]: module };
-    return <Component {...props} />;
+    return renderBaseline();
   }
 
-  // Transform experiences for Ninetailed SDK
-  const experiences = transformExperiences(module);
-
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Ninetailed experiences for', contentTypeId, ':', experiences);
-  }
-
-  // If no valid experiences after transformation, render baseline
-  if (experiences.length === 0) {
-    const props = { [propName]: module };
-    return <Component {...props} />;
-  }
-
-  // Render with Ninetailed Experience component
+  // Use personalized renderer for modules with experiences
   return (
-    <Experience
-      id={module.sys.id}
-      component={(props: any) => {
-        const componentProps = { [propName]: { sys: module.sys, fields: props } };
-        return <Component {...componentProps} />;
-      }}
-      experiences={experiences}
-      {...module.fields}
+    <PersonalizedModuleRenderer 
+      module={module} 
+      Component={Component} 
+      propName={propName} 
     />
   );
 }
