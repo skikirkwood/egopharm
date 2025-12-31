@@ -24,6 +24,14 @@ async function resolveLink(client: any, link: any, include: number = 2): Promise
 // Helper to resolve nt_experiences and their nested variants
 async function resolveExperiences(client: any, module: any): Promise<void> {
   const moduleFields = module.fields as any;
+  const contentTypeId = module.sys?.contentType?.sys?.id;
+  
+  console.log('resolveExperiences for', contentTypeId, ':', {
+    hasNtExperiences: !!moduleFields.nt_experiences,
+    isArray: Array.isArray(moduleFields.nt_experiences),
+    rawValue: moduleFields.nt_experiences,
+  });
+  
   if (!moduleFields.nt_experiences || !Array.isArray(moduleFields.nt_experiences)) {
     return;
   }
