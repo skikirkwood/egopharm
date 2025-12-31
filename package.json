@@ -12,23 +12,26 @@
     "contentful:migrate:featured-news": "ts-node --project contentful/tsconfig.json contentful/migrate-featured-news.ts"
   },
   "dependencies": {
-    "next": "^14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "@contentful/live-preview": "^4.5.0",
+    "@contentful/mcp-server": "^1.7.6",
+    "@ninetailed/experience.js-next": "^7.18.9",
+    "@ninetailed/experience.js-plugin-insights": "^7.18.9",
+    "@ninetailed/experience.js-utils-contentful": "^7.18.9",
     "contentful": "^10.12.0",
     "contentful-management": "^10.12.0",
-    "@contentful/live-preview": "^4.5.0"
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0",
+    "autoprefixer": "^10.4.0",
     "dotenv": "^16.3.0",
-    "tailwindcss": "^3.3.0",
     "postcss": "^8.4.0",
-    "autoprefixer": "^10.4.0"
+    "tailwindcss": "^3.3.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   }
 }
-

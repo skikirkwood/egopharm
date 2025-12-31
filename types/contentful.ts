@@ -1,3 +1,39 @@
+// Ninetailed Experience types
+export interface NinetailedAudience {
+  sys: {
+    id: string;
+    contentType: {
+      sys: {
+        id: 'nt_audience';
+      };
+    };
+  };
+  fields: {
+    nt_name: string;
+    nt_description?: string;
+    nt_audience_id: string;
+  };
+}
+
+export interface NinetailedExperience {
+  sys: {
+    id: string;
+    contentType: {
+      sys: {
+        id: 'nt_experience';
+      };
+    };
+  };
+  fields: {
+    nt_name: string;
+    nt_description?: string;
+    nt_type: 'nt_personalization' | 'nt_experiment';
+    nt_config?: object;
+    nt_audience?: NinetailedAudience;
+    nt_variants?: Array<Hero | Infoblock | ImageTriplex | FeaturedNews>;
+  };
+}
+
 export interface NavigationItem {
   sys: {
     id: string;
@@ -6,6 +42,7 @@ export interface NavigationItem {
     label: string;
     url: string;
     children?: NavigationItem[];
+    nt_experiences?: NinetailedExperience[];
   };
 }
 
@@ -59,6 +96,7 @@ export interface Hero {
     ctaText?: string;
     ctaLink?: string;
     imageLocation?: 'Right side' | 'Right overlay';
+    nt_experiences?: NinetailedExperience[];
   };
 }
 
@@ -84,6 +122,7 @@ export interface Infoblock {
         title: string;
       };
     };
+    nt_experiences?: NinetailedExperience[];
   };
 }
 
@@ -119,6 +158,7 @@ export interface ImageTriplex {
   fields: {
     title: string;
     items: ImageTriplexItem[];
+    nt_experiences?: NinetailedExperience[];
   };
 }
 
@@ -146,13 +186,14 @@ export interface FeaturedNews {
     id: string;
     contentType: {
       sys: {
-        id: '6NbIn3MpiND4Hybq2U6NV8';
+        id: '6NbIn3MpiND4Hybq2U6NV8' | 'featuredNews';
       };
     };
   };
   fields: {
     title: string;
     items: FeaturedNewsItem[];
+    nt_experiences?: NinetailedExperience[];
   };
 }
 
