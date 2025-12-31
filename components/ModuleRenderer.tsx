@@ -74,8 +74,8 @@ function PersonalizedModule({
   Component: React.ComponentType<any>; 
   propName: string;
 }) {
-  // Dynamic import of Experience and ExperienceMapper
-  const { Experience } = require('@ninetailed/experience.js-next');
+  // Use React SDK instead of Next.js SDK
+  const { Experience } = require('@ninetailed/experience.js-react');
   const { ExperienceMapper } = require('@ninetailed/experience.js-utils-contentful');
 
   // Map experiences for personalization using the Ninetailed utility
