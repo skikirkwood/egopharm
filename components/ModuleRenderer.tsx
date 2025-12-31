@@ -91,51 +91,37 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
     return renderBaseline();
   }
 
-  // Map experiences using the Ninetailed Contentful utility
-  const mappedExperiences: any[] = [];
-  
-  for (const exp of experiences) {
-    console.log('Processing experience:', {
-      id: exp?.sys?.id,
-      hasFields: !!exp?.fields,
-      isValidEntry: false,
-    });
+  // Use mapBaselineWithExperiences to properly create the experience configuration
+  // This method takes the baseline entry (module) and returns mapped experiences
+  try {
+    const mappedExperiences = ExperienceMapper.mapBaselineWithExperiences(module as any);
     
-    try {
-      const isValid = ExperienceMapper.isExperienceEntry(exp);
-      console.log('isExperienceEntry result:', isValid, exp);
-      
-      if (isValid) {
-        const mapped = ExperienceMapper.mapExperience(exp);
-        console.log('Mapped experience:', mapped);
-        mappedExperiences.push(mapped);
-      } else {
-        console.warn('Experience entry failed validation:', exp);
-      }
-    } catch (error) {
-      console.error('Error mapping experience:', error);
-    }
-  }
-  
-  console.log('Final mapped experiences:', mappedExperiences);
+    console.log('Mapped experiences from baseline:', mappedExperiences);
 
-  // If no valid experiences after mapping, render baseline
-  if (mappedExperiences.length === 0) {
+    if (!mappedExperiences || mappedExperiences.length === 0) {
+      console.log('No valid mapped experiences, rendering baseline');
+      return renderBaseline();
+    }
+
+    // Use Ninetailed Experience component
+    return (
+      <Experience
+        id={module.sys.id}
+        component={(props: any) => {
+          console.log('Experience component rendering with props:', props);
+          const componentProps = { [propName]: { sys: module.sys, fields: props } };
+          return <Component {...componentProps} />;
+        }}
+        loadingComponent={() => {
+          console.log('Experience loading component');
+          return renderBaseline();
+        }}
+        experiences={mappedExperiences}
+        {...module.fields}
+      />
+    );
+  } catch (error) {
+    console.error('Error mapping experiences:', error);
     return renderBaseline();
   }
-
-  // Use Ninetailed Experience component with loadingComponent to prevent flicker
-  return (
-    <Experience
-      id={module.sys.id}
-      component={(props: any) => {
-        // The Experience component passes the variant's fields as props
-        const componentProps = { [propName]: { sys: module.sys, fields: props } };
-        return <Component {...componentProps} />;
-      }}
-      loadingComponent={() => renderBaseline()}
-      experiences={mappedExperiences}
-      {...module.fields}
-    />
-  );
 }
