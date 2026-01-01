@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Experience } from '@ninetailed/experience.js-next';
+import { Experience } from '@ninetailed/experience.js-react';
 import { ExperienceMapper } from '@ninetailed/experience.js-utils-contentful';
 
 import { Module } from '@/types/contentful';
@@ -84,7 +84,6 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
   const Component = ContentTypeMap[contentTypeId];
 
   // During SSR, render the baseline component directly
-  // This prevents the "must be a descendant of NinetailedProvider" error
   if (!isClient) {
     return <Component {...{ [propName]: module }} />;
   }

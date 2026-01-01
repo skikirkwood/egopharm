@@ -14,8 +14,8 @@
   "dependencies": {
     "@contentful/live-preview": "^4.5.0",
     "@contentful/mcp-server": "^1.7.6",
-    "@ninetailed/experience.js-next": "^7.10.0",
     "@ninetailed/experience.js-plugin-insights": "^7.10.0",
+    "@ninetailed/experience.js-react": "^7.10.0",
     "@ninetailed/experience.js-shared": "^7.18.9",
     "@ninetailed/experience.js-utils-contentful": "^7.10.0",
     "contentful": "^10.12.0",

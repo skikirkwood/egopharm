@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { NinetailedProvider } from '@ninetailed/experience.js-next';
+import { NinetailedProvider } from '@ninetailed/experience.js-react';
 import { NinetailedInsightsPlugin } from '@ninetailed/experience.js-plugin-insights';
 
 interface NinetailedProviderInnerProps {
@@ -19,7 +19,6 @@ export default function NinetailedProviderInner({ children }: NinetailedProvider
       plugins={[
         new NinetailedInsightsPlugin(),
       ]}
-      componentViewTrackingThreshold={0}
     >
       {children}
     </NinetailedProvider>
