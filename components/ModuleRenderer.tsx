@@ -54,9 +54,29 @@ const parseExperiences = (entry: any) => {
     return [];
   }
 
-  return entry.fields.nt_experiences
+  const experiences = entry.fields.nt_experiences;
+  
+  // Debug logging
+  console.log('[ModuleRenderer] Raw experiences:', experiences.length);
+  experiences.forEach((exp: any, i: number) => {
+    console.log(`[ModuleRenderer] Experience ${i}:`, {
+      hasFields: !!exp?.fields,
+      isExperienceEntry: ExperienceMapper.isExperienceEntry(exp),
+      name: exp?.fields?.nt_name,
+      type: exp?.fields?.nt_type,
+      experienceId: exp?.fields?.nt_experience_id,
+      audienceId: exp?.fields?.nt_audience?.sys?.id,
+      variantCount: exp?.fields?.nt_variants?.length,
+    });
+  });
+
+  const mapped = experiences
     .filter((experience: any) => ExperienceMapper.isExperienceEntry(experience))
     .map((experience: any) => ExperienceMapper.mapExperience(experience));
+  
+  console.log('[ModuleRenderer] Mapped experiences:', mapped);
+  
+  return mapped;
 };
 
 interface ModuleRendererProps {
