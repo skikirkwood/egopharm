@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import { useContentfulLiveUpdates, useContentfulInspectorMode } from '@contentful/live-preview/react';
 import { Hero as HeroType } from '@/types/contentful';

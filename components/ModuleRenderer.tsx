@@ -1,7 +1,5 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
-import { Experience } from '@ninetailed/experience.js-react';
+import React from 'react';
+import { Experience } from '@ninetailed/experience.js-next';
 import { ExperienceMapper } from '@ninetailed/experience.js-utils-contentful';
 
 import { Module } from '@/types/contentful';
@@ -50,7 +48,7 @@ const hasExperiences = (entry: any): boolean => {
          entry.fields.nt_experiences.length > 0;
 };
 
-// Parse experiences using ExperienceMapper
+// Parse experiences using ExperienceMapper (following reference implementation)
 const parseExperiences = (entry: any) => {
   if (!hasExperiences(entry)) {
     return [];
@@ -66,12 +64,6 @@ interface ModuleRendererProps {
 }
 
 export default function ModuleRenderer({ module }: ModuleRendererProps) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const contentTypeId = module.sys?.contentType?.sys?.id as string;
   const { id } = module.sys;
 
@@ -80,22 +72,10 @@ export default function ModuleRenderer({ module }: ModuleRendererProps) {
     return null;
   }
 
-  const propName = propNameMap[contentTypeId];
-  const Component = ContentTypeMap[contentTypeId];
-
-  // During SSR, render the baseline component directly
-  if (!isClient) {
-    return <Component {...{ [propName]: module }} />;
-  }
-
   const parsedExperiences = parseExperiences(module);
 
-  // If no experiences, just render the component
-  if (parsedExperiences.length === 0) {
-    return <Component {...{ [propName]: module }} />;
-  }
-
-  // On client, use Experience component for personalization
+  // Use Experience component for all modules (with or without experiences)
+  // The Experience component handles the personalization logic
   return (
     <Experience
       key={`${contentTypeId}-${id}`}

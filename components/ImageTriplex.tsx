@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 import { useState } from 'react';
 import { useContentfulLiveUpdates, useContentfulInspectorMode } from '@contentful/live-preview/react';
