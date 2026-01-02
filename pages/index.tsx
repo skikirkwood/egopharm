@@ -1,6 +1,7 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import { getContentfulClient } from '@/lib/contentful';
+import { getAllExperiences, getAllAudiences } from '@/lib/ninetailed';
 import { Page, SiteSettings } from '@/types/contentful';
 import TopBanner from '@/components/TopBanner';
 import Navigation from '@/components/Navigation';
@@ -10,6 +11,12 @@ import Footer from '@/components/Footer';
 interface HomeProps {
   page: Page;
   siteSettings: SiteSettings | null;
+  ninetailed?: {
+    preview: {
+      allExperiences: any[];
+      allAudiences: any[];
+    };
+  };
 }
 
 // Helper to resolve a single link
@@ -103,12 +110,24 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
       ? (settingsEntries.items[0] as unknown as SiteSettings)
       : null;
 
+    // Fetch experiences and audiences for the preview widget
+    const [allExperiences, allAudiences] = await Promise.all([
+      getAllExperiences(false),
+      getAllAudiences(false),
+    ]);
+
     return {
       props: {
         page,
         siteSettings,
+        ninetailed: {
+          preview: {
+            allExperiences,
+            allAudiences,
+          },
+        },
       },
-      revalidate: 60, // ISR: revalidate every 60 seconds
+      revalidate: 5, // Match reference implementation
     };
   } catch (error) {
     console.error('Error fetching page:', error);
