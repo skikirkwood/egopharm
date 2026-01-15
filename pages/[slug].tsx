@@ -138,7 +138,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   // Fetch all published pages to generate static paths
   const pageEntries = await client.getEntries({
     content_type: 'page',
-    select: 'fields.slug',
+    select: ['fields.slug'],
   });
 
   const paths = pageEntries.items
