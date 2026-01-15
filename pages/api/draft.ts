@@ -11,7 +11,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   // Enable Preview Mode by setting cookies
   res.setPreviewData({});
 
-  // Redirect to the path from slug or default to home
+  // Redirect to the path from slug
+  // If slug is 'home' or empty, redirect to root (/)
+  // Otherwise redirect to /[slug]
   const redirectPath = slug === 'home' || !slug ? '/' : `/${slug}`;
   res.redirect(redirectPath);
 }

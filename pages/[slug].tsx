@@ -1,4 +1,4 @@
-import { GetStaticProps } from 'next';
+import { GetStaticProps, GetStaticPaths } from 'next';
 import Head from 'next/head';
 import { getContentfulClient } from '@/lib/contentful';
 import { getAllExperiences, getAllAudiences } from '@/lib/ninetailed';
@@ -8,7 +8,7 @@ import Navigation from '@/components/Navigation';
 import ModuleRenderer from '@/components/ModuleRenderer';
 import Footer from '@/components/Footer';
 
-interface HomeProps {
+interface PageProps {
   page: Page;
   siteSettings: SiteSettings | null;
   ninetailed?: {
@@ -75,63 +75,106 @@ async function resolveExperiences(client: any, module: any): Promise<void> {
   moduleFields.nt_experiences = resolvedExperiences;
 }
 
-export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = false }) => {
-  try {
-    const client = getContentfulClient(preview);
-    
-    // Fetch page
-    const pageEntries = await client.getEntries({
-      content_type: 'page',
-      'fields.slug': 'home',
-      include: 10,
-    });
+// Shared function to fetch page data
+async function fetchPageData(slug: string, preview: boolean = false) {
+  const client = getContentfulClient(preview);
+  
+  // Fetch page
+  const pageEntries = await client.getEntries({
+    content_type: 'page',
+    'fields.slug': slug,
+    include: 10,
+  });
 
-    if (pageEntries.items.length === 0) {
+  if (pageEntries.items.length === 0) {
+    return null;
+  }
+
+  const page = pageEntries.items[0] as unknown as Page;
+  
+  // Resolve nt_experiences and their variants for each module
+  if (page.fields.modules) {
+    await Promise.all(
+      page.fields.modules.map(module => resolveExperiences(client, module))
+    );
+  }
+
+  // Fetch site settings
+  const settingsEntries = await client.getEntries({
+    content_type: '6b7cR8MAmg1gzxiibBMiG7',
+    include: 2,
+    limit: 1,
+  });
+
+  const siteSettings = settingsEntries.items.length > 0 
+    ? (settingsEntries.items[0] as unknown as SiteSettings)
+    : null;
+
+  // Fetch experiences and audiences for the preview widget (only in preview mode)
+  let ninetailed;
+  if (preview) {
+    const [allExperiences, allAudiences] = await Promise.all([
+      getAllExperiences(true),
+      getAllAudiences(true),
+    ]);
+    ninetailed = {
+      preview: {
+        allExperiences,
+        allAudiences,
+      },
+    };
+  }
+
+  return {
+    page,
+    siteSettings,
+    ninetailed,
+  };
+}
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const client = getContentfulClient(false);
+  
+  // Fetch all published pages to generate static paths
+  const pageEntries = await client.getEntries({
+    content_type: 'page',
+    select: 'fields.slug',
+  });
+
+  const paths = pageEntries.items
+    .map((item: any) => item.fields.slug)
+    .filter((slug: string) => slug && slug !== 'home') // Exclude 'home' as it's handled by index.tsx
+    .map((slug: string) => ({
+      params: { slug },
+    }));
+
+  return {
+    paths,
+    fallback: 'blocking', // Enable ISR for new pages
+  };
+};
+
+export const getStaticProps: GetStaticProps<PageProps> = async ({ params, preview = false }) => {
+  try {
+    const slug = params?.slug as string;
+    
+    if (!slug) {
       return { notFound: true };
     }
 
-    const page = pageEntries.items[0] as unknown as Page;
-    
-    // Resolve nt_experiences and their variants for each module
-    if (page.fields.modules) {
-      await Promise.all(
-        page.fields.modules.map(module => resolveExperiences(client, module))
-      );
-    }
+    const data = await fetchPageData(slug, preview);
 
-    // Fetch site settings
-    const settingsEntries = await client.getEntries({
-      content_type: '6b7cR8MAmg1gzxiibBMiG7',
-      include: 2,
-      limit: 1,
-    });
-
-    const siteSettings = settingsEntries.items.length > 0 
-      ? (settingsEntries.items[0] as unknown as SiteSettings)
-      : null;
-
-    // Fetch experiences and audiences for the preview widget (only in preview mode)
-    let ninetailed;
-    if (preview) {
-      const [allExperiences, allAudiences] = await Promise.all([
-        getAllExperiences(true),
-        getAllAudiences(true),
-      ]);
-      ninetailed = {
-        preview: {
-          allExperiences,
-          allAudiences,
-        },
-      };
+    if (!data) {
+      return { notFound: true };
     }
 
     return {
       props: {
-        page,
-        siteSettings,
-        ...(ninetailed && { ninetailed }),
+        page: data.page,
+        siteSettings: data.siteSettings,
+        ...(data.ninetailed && { ninetailed: data.ninetailed }),
       },
-      revalidate: 5, // Match reference implementation
+      revalidate: 5,
     };
   } catch (error) {
     console.error('Error fetching page:', error);
@@ -139,14 +182,14 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = fals
   }
 };
 
-export default function Home({ page, siteSettings }: HomeProps) {
+export default function PageComponent({ page, siteSettings }: PageProps) {
   return (
     <>
       <Head>
-        <title>Ego Pharmaceuticals - The Science of Healthy Skin</title>
+        <title>{page.fields.title} - Ego Pharmaceuticals</title>
         <meta 
           name="description" 
-          content="Proudly Australian owned, Ego Pharmaceuticals has led the way in the development, manufacture and marketing of innovative skincare products since 1953." 
+          content={page.fields.title}
         />
       </Head>
       <main className="min-h-screen">
@@ -160,4 +203,3 @@ export default function Home({ page, siteSettings }: HomeProps) {
     </>
   );
 }
-
