@@ -33,6 +33,10 @@ async function resolveLink(client: any, link: any, include: number = 2): Promise
 
 // Helper to resolve nt_experiences and their nested variants
 async function resolveExperiences(client: any, module: any): Promise<void> {
+  if (!module || !module.fields) {
+    return;
+  }
+  
   const moduleFields = module.fields as any;
   
   if (!moduleFields.nt_experiences || !Array.isArray(moduleFields.nt_experiences)) {
@@ -95,7 +99,9 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = fals
     // Resolve nt_experiences and their variants for each module
     if (page.fields.modules) {
       await Promise.all(
-        page.fields.modules.map(module => resolveExperiences(client, module))
+        page.fields.modules
+          .filter((module: any) => module && module.fields) // Only process modules with fields
+          .map(module => resolveExperiences(client, module))
       );
     }
 
