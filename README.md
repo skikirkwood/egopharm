@@ -136,5 +136,5 @@ After running the migration, create content in Contentful:
 
 ## License
 
-Copyright © Ego Pharmaceuticals. All Rights Reserved.
+MIT
 
