@@ -110,25 +110,22 @@ async function fetchPageData(slug: string, preview: boolean = false) {
     ? (settingsEntries.items[0] as unknown as SiteSettings)
     : null;
 
-  // Fetch experiences and audiences for the preview widget (only in preview mode)
-  let ninetailed;
-  if (preview) {
-    const [allExperiences, allAudiences] = await Promise.all([
-      getAllExperiences(true),
-      getAllAudiences(true),
-    ]);
-    ninetailed = {
-      preview: {
-        allExperiences,
-        allAudiences,
-      },
-    };
-  }
+  // Fetch experiences and audiences for the preview widget
+  // Always fetch so the widget can show/hide based on preview mode
+  const [allExperiences, allAudiences] = await Promise.all([
+    getAllExperiences(preview),
+    getAllAudiences(preview),
+  ]);
 
   return {
     page,
     siteSettings,
-    ninetailed,
+    ninetailed: {
+      preview: {
+        allExperiences,
+        allAudiences,
+      },
+    },
   };
 }
 
@@ -172,7 +169,7 @@ export const getStaticProps: GetStaticProps<PageProps> = async ({ params, previe
       props: {
         page: data.page,
         siteSettings: data.siteSettings,
-        ...(data.ninetailed && { ninetailed: data.ninetailed }),
+        ninetailed: data.ninetailed,
       },
       revalidate: 5,
     };

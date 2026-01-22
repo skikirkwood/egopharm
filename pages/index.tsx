@@ -110,26 +110,23 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = fals
       ? (settingsEntries.items[0] as unknown as SiteSettings)
       : null;
 
-    // Fetch experiences and audiences for the preview widget (only in preview mode)
-    let ninetailed;
-    if (preview) {
-      const [allExperiences, allAudiences] = await Promise.all([
-        getAllExperiences(true),
-        getAllAudiences(true),
-      ]);
-      ninetailed = {
-        preview: {
-          allExperiences,
-          allAudiences,
-        },
-      };
-    }
+    // Fetch experiences and audiences for the preview widget
+    // Always fetch so the widget can show/hide based on preview mode
+    const [allExperiences, allAudiences] = await Promise.all([
+      getAllExperiences(preview),
+      getAllAudiences(preview),
+    ]);
 
     return {
       props: {
         page,
         siteSettings,
-        ...(ninetailed && { ninetailed }),
+        ninetailed: {
+          preview: {
+            allExperiences,
+            allAudiences,
+          },
+        },
       },
       revalidate: 5, // Match reference implementation
     };
