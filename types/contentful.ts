@@ -197,7 +197,34 @@ export interface FeaturedNews {
   };
 }
 
-export type Module = Hero | Infoblock | ImageTriplex | FeaturedNews;
+export interface DuplexContainer {
+  sys: {
+    id: string;
+    contentType: {
+      sys: {
+        id: 'duplexContainer';
+      };
+    };
+  };
+  fields: {
+    title: string;
+    subtitle?: string;
+    image: {
+      fields: {
+        file: {
+          url: string;
+        };
+        title: string;
+      };
+    };
+    imagePosition?: 'Left' | 'Right';
+    ctaText?: string;
+    ctaUrl?: string;
+    nt_experiences?: NinetailedExperience[];
+  };
+}
+
+export type Module = Hero | Infoblock | ImageTriplex | FeaturedNews | DuplexContainer;
 
 export interface Page {
   sys: {

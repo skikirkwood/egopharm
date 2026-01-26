@@ -7,6 +7,7 @@ import Hero from './Hero';
 import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
+import DuplexContainer from './DuplexContainer';
 
 // Component mapping by content type ID
 const ContentTypeMap: Record<string, React.ComponentType<any>> = {
@@ -15,6 +16,7 @@ const ContentTypeMap: Record<string, React.ComponentType<any>> = {
   imageTriplex: ImageTriplex,
   featuredNews: FeaturedNews,
   '6NbIn3MpiND4Hybq2U6NV8': FeaturedNews,
+  duplexContainer: DuplexContainer,
 };
 
 // Prop name mapping for each component
@@ -24,6 +26,7 @@ const propNameMap: Record<string, string> = {
   imageTriplex: 'imageTriplex',
   featuredNews: 'featuredNews',
   '6NbIn3MpiND4Hybq2U6NV8': 'featuredNews',
+  duplexContainer: 'duplexContainer',
 };
 
 // Component renderer that receives the full entry and renders the appropriate component
