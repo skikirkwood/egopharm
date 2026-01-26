@@ -116,7 +116,7 @@ async function runMigration() {
             {
               regexp: {
                 pattern: '^(https?:\\/\\/|\\/).*',
-                flags: null,
+                flags: '',
               },
               message: 'Must be a valid URL starting with http://, https://, or /',
             },
@@ -213,7 +213,7 @@ async function runMigration() {
               {
                 regexp: {
                   pattern: '^(https?:\\/\\/|\\/).*',
-                  flags: null,
+                  flags: '',
                 },
                 message: 'Must be a valid URL starting with http://, https://, or /',
               },
