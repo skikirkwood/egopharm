@@ -20,71 +20,14 @@ interface HomeProps {
   };
 }
 
-// Helper to resolve a single link
-async function resolveLink(client: any, link: any, include: number = 2): Promise<any> {
-  if (!link?.sys?.id || link?.fields) return link;
-  
-  try {
-    return await client.getEntry(link.sys.id, { include });
-  } catch (e) {
-    console.warn('Failed to resolve link:', link.sys.id);
-    return link;
-  }
-}
-
-// Helper to resolve nt_experiences and their nested variants
-async function resolveExperiences(client: any, module: any): Promise<void> {
-  if (!module || !module.fields) {
-    return;
-  }
-  
-  const moduleFields = module.fields as any;
-  
-  if (!moduleFields.nt_experiences || !Array.isArray(moduleFields.nt_experiences)) {
-    return;
-  }
-
-  // Resolve each experience
-  const resolvedExperiences = await Promise.all(
-    moduleFields.nt_experiences.map(async (exp: any) => {
-      // Resolve the experience itself if it's a link
-      let resolvedExp = exp;
-      if (exp?.sys?.type === 'Link' && !exp?.fields) {
-        resolvedExp = await resolveLink(client, exp, 3);
-      }
-
-      // Now resolve nested fields within the experience
-      if (resolvedExp?.fields) {
-        // Resolve nt_audience if it's a link
-        if (resolvedExp.fields.nt_audience?.sys?.type === 'Link' && !resolvedExp.fields.nt_audience?.fields) {
-          resolvedExp.fields.nt_audience = await resolveLink(client, resolvedExp.fields.nt_audience);
-        }
-
-        // Resolve nt_variants if they are links
-        if (Array.isArray(resolvedExp.fields.nt_variants)) {
-          resolvedExp.fields.nt_variants = await Promise.all(
-            resolvedExp.fields.nt_variants.map(async (variant: any) => {
-              if (variant?.sys?.type === 'Link' && !variant?.fields) {
-                return await resolveLink(client, variant, 2);
-              }
-              return variant;
-            })
-          );
-        }
-      }
-
-      return resolvedExp;
-    })
-  );
-
-  moduleFields.nt_experiences = resolvedExperiences;
-}
-
 export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = false }) => {
   try {
     const client = getContentfulClient(preview);
     
-    // Fetch page
+    // Fetch page with include: 10 to resolve all nested links
+    // NOTE: Do NOT manually transform/resolve links - this breaks Live Preview
+    // The SDK's include parameter handles link resolution while preserving
+    // the data structure that useContentfulLiveUpdates needs to track updates
     const pageEntries = await client.getEntries({
       content_type: 'page',
       'fields.slug': 'home',
@@ -96,15 +39,6 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = fals
     }
 
     const page = pageEntries.items[0] as unknown as Page;
-    
-    // Resolve nt_experiences and their variants for each module
-    if (page.fields.modules) {
-      await Promise.all(
-        page.fields.modules
-          .filter((module: any) => module && module.fields) // Only process modules with fields
-          .map(module => resolveExperiences(client, module))
-      );
-    }
 
     // Fetch site settings
     const settingsEntries = await client.getEntries({
