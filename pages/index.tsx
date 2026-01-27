@@ -1,5 +1,6 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
+import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { getContentfulClient } from '@/lib/contentful';
 import { getAllExperiences, getAllAudiences } from '@/lib/ninetailed';
 import { Page, SiteSettings } from '@/types/contentful';
@@ -142,7 +143,10 @@ export const getStaticProps: GetStaticProps<HomeProps> = async ({ preview = fals
   }
 };
 
-export default function Home({ page, siteSettings }: HomeProps) {
+export default function Home({ page: initialPage, siteSettings }: HomeProps) {
+  // Subscribe to page-level live updates (including module order changes)
+  const page = useContentfulLiveUpdates(initialPage);
+  
   return (
     <>
       <Head>
