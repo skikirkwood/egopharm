@@ -9,13 +9,15 @@ interface HeroProps {
 function getYouTubeEmbedUrl(url: string): string | null {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
-  return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : null;
+  return match && match[2].length === 11 
+    ? `https://www.youtube.com/embed/${match[2]}?autoplay=1&loop=1&mute=1&playlist=${match[2]}` 
+    : null;
 }
 
 function getVimeoEmbedUrl(url: string): string | null {
   const regExp = /vimeo\.com\/(\d+)/;
   const match = url.match(regExp);
-  return match ? `https://player.vimeo.com/video/${match[1]}` : null;
+  return match ? `https://player.vimeo.com/video/${match[1]}?autoplay=1&loop=1&muted=1&background=1` : null;
 }
 
 export default function Hero({ hero: initialHero }: HeroProps) {
@@ -104,7 +106,10 @@ export default function Hero({ hero: initialHero }: HeroProps) {
               ) : videoAssetUrl && (
                 <video
                   src={videoAssetUrl}
-                  controls
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                   className="absolute inset-0 w-full h-full object-cover"
                   poster={imageUrl || undefined}
                 >
