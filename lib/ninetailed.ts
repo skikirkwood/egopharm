@@ -16,7 +16,7 @@ export async function getAllExperiences(preview: boolean = false) {
 
   const entries = await client.getEntries({
     content_type: 'nt_experience',
-    include: 1,
+    include: 3,
   });
 
   const experiences = entries.items as ExperienceEntryLike[];
