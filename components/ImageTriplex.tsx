@@ -18,11 +18,11 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-20 px-4 bg-white">
+    <section className="py-20 px-4 bg-quanata-dark">
       <div className="max-w-7xl mx-auto">
         {title && (
           <h2 
-            className="text-4xl md:text-5xl font-bold text-blue-500 mb-12 text-center"
+            className="text-4xl md:text-5xl font-bold text-white mb-12 text-center"
             {...inspectorProps({ fieldId: 'title' })}
           >
             {title}
@@ -36,7 +36,7 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
             return (
               <div
                 key={item.sys.id}
-                className="relative h-96 rounded-lg overflow-hidden group cursor-pointer"
+                className="relative h-96 rounded-lg overflow-hidden group cursor-pointer border border-quanata-slate/30"
                 onMouseEnter={() => setHoveredIndex(index)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
@@ -47,8 +47,8 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />
                 <div
-                  className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-                    isHovered ? 'opacity-70' : 'opacity-0'
+                  className={`absolute inset-0 bg-quanata-dark transition-opacity duration-300 ${
+                    isHovered ? 'opacity-80' : 'opacity-0'
                   }`}
                 />
                 <div
@@ -59,11 +59,11 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
                   <h3 className="text-2xl font-bold mb-4 text-center">
                     {item.fields.title}
                   </h3>
-                  <p className="text-center mb-4">{item.fields.body}</p>
+                  <p className="text-center mb-4 text-quanata-light/90">{item.fields.body}</p>
                   {item.fields.ctaText && item.fields.ctaLink && (
                     <a
                       href={item.fields.ctaLink}
-                      className="inline-block bg-white text-gray-900 px-6 py-2 rounded-md font-semibold hover:bg-gray-100 transition-colors"
+                      className="inline-block bg-quanata-accent text-quanata-dark px-6 py-2 rounded-md font-semibold hover:bg-quanata-accent-light transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {item.fields.ctaText}
@@ -71,7 +71,7 @@ export default function ImageTriplex({ imageTriplex: initialImageTriplex }: Imag
                   )}
                 </div>
                 {!isHovered && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 p-4">
+                  <div className="absolute inset-0 flex items-center justify-center bg-quanata-dark/60 p-4">
                     <h3 className="text-xl font-bold text-white text-center">
                       {item.fields.title}
                     </h3>

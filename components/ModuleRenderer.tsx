@@ -8,6 +8,8 @@ import Infoblock from './Infoblock';
 import ImageTriplex from './ImageTriplex';
 import FeaturedNews from './FeaturedNews';
 import DuplexContainer from './DuplexContainer';
+import SolutionsList from './SolutionsList';
+import ValuePropositions from './ValuePropositions';
 
 // Component mapping by content type ID
 const ContentTypeMap: Record<string, React.ComponentType<any>> = {
@@ -17,6 +19,8 @@ const ContentTypeMap: Record<string, React.ComponentType<any>> = {
   featuredNews: FeaturedNews,
   '6NbIn3MpiND4Hybq2U6NV8': FeaturedNews,
   duplexContainer: DuplexContainer,
+  solutionsList: SolutionsList,
+  valuePropositions: ValuePropositions,
 };
 
 // Prop name mapping for each component
@@ -27,6 +31,8 @@ const propNameMap: Record<string, string> = {
   featuredNews: 'featuredNews',
   '6NbIn3MpiND4Hybq2U6NV8': 'featuredNews',
   duplexContainer: 'duplexContainer',
+  solutionsList: 'solutionsList',
+  valuePropositions: 'valuePropositions',
 };
 
 // Component renderer that receives the full entry and renders the appropriate component

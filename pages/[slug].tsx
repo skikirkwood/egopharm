@@ -4,7 +4,6 @@ import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { getContentfulClient } from '@/lib/contentful';
 import { getAllExperiences, getAllAudiences } from '@/lib/ninetailed';
 import { Page, SiteSettings } from '@/types/contentful';
-import TopBanner from '@/components/TopBanner';
 import Navigation from '@/components/Navigation';
 import ModuleRenderer from '@/components/ModuleRenderer';
 import Footer from '@/components/Footer';
@@ -127,14 +126,13 @@ export default function PageComponent({ page: initialPage, siteSettings }: PageP
   return (
     <>
       <Head>
-        <title>{page.fields.title} - Ego Pharmaceuticals</title>
+        <title>{page.fields.title} - Quanata</title>
         <meta 
           name="description" 
           content={page.fields.title}
         />
       </Head>
       <main className="min-h-screen">
-        <TopBanner />
         <Navigation navigation={page.fields.navigation} siteSettings={siteSettings} />
         {page.fields.modules.map((module) => (
           <ModuleRenderer key={module.sys.id} module={module} />

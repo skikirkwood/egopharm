@@ -4,7 +4,6 @@ import { useContentfulLiveUpdates } from '@contentful/live-preview/react';
 import { getContentfulClient } from '@/lib/contentful';
 import { getAllExperiences, getAllAudiences } from '@/lib/ninetailed';
 import { Page, SiteSettings } from '@/types/contentful';
-import TopBanner from '@/components/TopBanner';
 import Navigation from '@/components/Navigation';
 import ModuleRenderer from '@/components/ModuleRenderer';
 import Footer from '@/components/Footer';
@@ -84,14 +83,13 @@ export default function Home({ page: initialPage, siteSettings }: HomeProps) {
   return (
     <>
       <Head>
-        <title>Ego Pharmaceuticals - The Science of Healthy Skin</title>
+        <title>Quanata - Turning Risk Into Opportunity</title>
         <meta 
           name="description" 
-          content="Proudly Australian owned, Ego Pharmaceuticals has led the way in the development, manufacture and marketing of innovative skincare products since 1953." 
+          content="Quanata uses AI-powered driver behavior analytics to help fleets and insurers make smarter, safer decisions." 
         />
       </Head>
       <main className="min-h-screen">
-        <TopBanner />
         <Navigation navigation={page.fields.navigation} siteSettings={siteSettings} />
         {page.fields.modules.map((module) => (
           <ModuleRenderer key={module.sys.id} module={module} />

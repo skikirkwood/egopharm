@@ -16,7 +16,7 @@ export default function FeaturedNews({ featuredNews: initialFeaturedNews }: Feat
   const { title, items } = featuredNews.fields;
 
   return (
-    <section className="py-20 px-4 bg-blue-600">
+    <section className="py-20 px-4 bg-quanata-slate/30">
       <div className="max-w-7xl mx-auto">
         {title && (
           <h2 
@@ -31,7 +31,7 @@ export default function FeaturedNews({ featuredNews: initialFeaturedNews }: Feat
             const imageUrl = `https:${item.fields.image.fields.file.url}`;
 
             const content = (
-              <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
+              <div className="bg-quanata-navy rounded-lg overflow-hidden border border-quanata-slate/30 hover:border-quanata-accent/50 transition-colors h-full flex flex-col">
                 <div className="relative h-48 flex-shrink-0">
                   <Image
                     src={imageUrl}
@@ -41,10 +41,10 @@ export default function FeaturedNews({ featuredNews: initialFeaturedNews }: Feat
                   />
                 </div>
                 <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  <h3 className="text-xl font-bold text-white mb-3">
                     {item.fields.title}
                   </h3>
-                  <p className="text-gray-700 whitespace-pre-line flex-grow">
+                  <p className="text-quanata-light/70 whitespace-pre-line flex-grow">
                     {item.fields.body}
                   </p>
                 </div>
@@ -69,8 +69,8 @@ export default function FeaturedNews({ featuredNews: initialFeaturedNews }: Feat
         
         <div className="mt-12 text-center">
           <a
-            href="https://www.egopharm.com/content/egopharm/au/en/news"
-            className="inline-block bg-white text-blue-600 px-8 py-4 rounded-md font-semibold border-2 border-white hover:bg-blue-600 hover:text-white hover:border-white transition-colors"
+            href="/news"
+            className="inline-block bg-quanata-accent hover:bg-quanata-accent-light text-quanata-dark px-8 py-4 rounded-md font-semibold transition-colors"
           >
             VIEW ALL NEWS
           </a>

@@ -44,10 +44,10 @@ export default function DuplexContainer({ duplexContainer: initialDuplexContaine
 
   // Content component
   const ContentSection = (
-    <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-50 px-8 py-12 md:py-0">
+    <div className="w-full md:w-1/2 flex items-center justify-center bg-quanata-navy px-8 py-12 md:py-0">
       <div className="max-w-lg">
         <h2 
-          className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-500 mb-4"
+          className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
           {...inspectorProps({ fieldId: 'title' })}
         >
           {title}
@@ -55,7 +55,7 @@ export default function DuplexContainer({ duplexContainer: initialDuplexContaine
         
         {subtitle && (
           <p 
-            className="text-lg text-gray-700 mb-6 whitespace-pre-line"
+            className="text-lg text-quanata-light/80 mb-6 whitespace-pre-line"
             {...inspectorProps({ fieldId: 'subtitle' })}
           >
             {subtitle}
@@ -65,9 +65,7 @@ export default function DuplexContainer({ duplexContainer: initialDuplexContaine
         {ctaText && ctaUrl && (
           <a
             href={ctaUrl}
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-md font-semibold 
-                       border-2 border-transparent hover:bg-white hover:text-blue-500 
-                       hover:border-blue-500 transition-colors"
+            className="inline-block bg-quanata-accent hover:bg-quanata-accent-light text-quanata-dark px-6 py-3 rounded-md font-semibold transition-colors"
             {...inspectorProps({ fieldId: 'ctaText' })}
           >
             {ctaText}
@@ -78,7 +76,7 @@ export default function DuplexContainer({ duplexContainer: initialDuplexContaine
   );
 
   return (
-    <section className="w-full min-h-[400px] md:min-h-[500px] flex flex-col md:flex-row">
+    <section className="w-full min-h-[400px] md:min-h-[500px] flex flex-col md:flex-row bg-quanata-dark">
       {isImageLeft ? (
         <>
           {ImageSection}

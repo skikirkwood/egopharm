@@ -85,7 +85,7 @@ export interface Hero {
   fields: {
     title: string;
     subtitle?: string;
-    backgroundImage: {
+    backgroundImage?: {
       fields: {
         file: {
           url: string;
@@ -95,7 +95,20 @@ export interface Hero {
     };
     ctaText?: string;
     ctaLink?: string;
+    secondaryCtaText?: string;
+    secondaryCtaLink?: string;
+    video?: {
+      fields: {
+        file: {
+          url: string;
+          contentType: string;
+        };
+        title: string;
+      };
+    };
+    videoUrl?: string;
     imageLocation?: 'Right side' | 'Right overlay';
+    layout?: 'Centered with video' | 'Image right' | 'Image overlay';
     nt_experiences?: NinetailedExperience[];
   };
 }
@@ -224,7 +237,78 @@ export interface DuplexContainer {
   };
 }
 
-export type Module = Hero | Infoblock | ImageTriplex | FeaturedNews | DuplexContainer;
+export interface SolutionItem {
+  sys: {
+    id: string;
+  };
+  fields: {
+    number?: string;
+    title: string;
+    description?: string;
+    icon?: {
+      fields: {
+        file: {
+          url: string;
+        };
+        title: string;
+      };
+    };
+  };
+}
+
+export interface SolutionsList {
+  sys: {
+    id: string;
+    contentType: {
+      sys: {
+        id: 'solutionsList';
+      };
+    };
+  };
+  fields: {
+    title: string;
+    subtitle?: string;
+    items: SolutionItem[];
+    nt_experiences?: NinetailedExperience[];
+  };
+}
+
+export interface ValuePropositionItem {
+  sys: {
+    id: string;
+  };
+  fields: {
+    text: string;
+    icon?: {
+      fields: {
+        file: {
+          url: string;
+        };
+        title: string;
+      };
+    };
+  };
+}
+
+export interface ValuePropositions {
+  sys: {
+    id: string;
+    contentType: {
+      sys: {
+        id: 'valuePropositions';
+      };
+    };
+  };
+  fields: {
+    title: string;
+    subtitle?: string;
+    propositions?: string[];
+    items?: ValuePropositionItem[];
+    nt_experiences?: NinetailedExperience[];
+  };
+}
+
+export type Module = Hero | Infoblock | ImageTriplex | FeaturedNews | DuplexContainer | SolutionsList | ValuePropositions;
 
 export interface Page {
   sys: {

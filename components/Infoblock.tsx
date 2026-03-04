@@ -16,18 +16,18 @@ export default function Infoblock({ infoblock: initialInfoblock }: InfoblockProp
   const { title, body, ctaText, ctaLink, backgroundImage } = infoblock.fields;
 
   return (
-    <section className="py-20 px-4 bg-gray-50">
+    <section className="py-20 px-4 bg-quanata-dark">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-6"
+              className="text-4xl md:text-5xl font-bold text-white mb-6"
               {...inspectorProps({ fieldId: 'title' })}
             >
               {title}
             </h2>
             <div 
-              className="text-lg text-gray-700 mb-8 whitespace-pre-line"
+              className="text-lg text-quanata-light/80 mb-8 whitespace-pre-line"
               {...inspectorProps({ fieldId: 'body' })}
             >
               {body}
@@ -35,7 +35,7 @@ export default function Infoblock({ infoblock: initialInfoblock }: InfoblockProp
             {ctaText && ctaLink && (
               <a
                 href={ctaLink}
-                className="inline-block bg-blue-600 text-white px-8 py-4 rounded-md font-semibold hover:bg-blue-700 transition-colors"
+                className="inline-block bg-quanata-accent hover:bg-quanata-accent-light text-quanata-dark px-8 py-4 rounded-md font-semibold transition-colors"
                 {...inspectorProps({ fieldId: 'ctaText' })}
               >
                 {ctaText}

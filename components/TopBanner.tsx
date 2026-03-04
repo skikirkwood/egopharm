@@ -1,54 +1,25 @@
 export default function TopBanner() {
   return (
-    <div className="bg-[#0072ce] text-white py-3 px-4">
+    <div className="bg-quanata-dark text-quanata-light py-2 px-4 border-b border-quanata-slate/20">
       <div className="max-w-7xl mx-auto flex justify-end items-center space-x-6">
         <a
-          href="/where-to-buy"
-          className="text-sm font-medium hover:text-blue-200 transition-colors"
+          href="/solutions"
+          className="text-sm font-medium hover:text-quanata-accent transition-colors"
         >
-          WHERE TO BUY
+          SOLUTIONS
         </a>
         <a
-          href="/brands"
-          className="text-sm font-medium hover:text-blue-200 transition-colors flex items-center"
+          href="/resources"
+          className="text-sm font-medium hover:text-quanata-accent transition-colors"
         >
-          BRANDS
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3 ml-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          RESOURCES
         </a>
-        <button className="flex items-center space-x-1 text-sm font-medium hover:text-blue-200 transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M2 12h20" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-          </svg>
-          <span>EN</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+        <a
+          href="/about"
+          className="text-sm font-medium hover:text-quanata-accent transition-colors"
+        >
+          ABOUT
+        </a>
       </div>
     </div>
   );
